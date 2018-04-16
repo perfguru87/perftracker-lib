@@ -1,0 +1,18 @@
+2018-05-05 01:00:00 line1 b c d
+ ...line1 continuation a b c d
+line2, without date
+
+xx 2018-05-05 01:00:00 line4, corrupted datetime a b c d
+2018-05-05 01:00:00 line5, good line
+
+2018-05-05 01:02:00 line7
+2018-05-05 01:02:00 line8
+2018-05-05 02:01:00.012456 line9 a b c d
+2018-05-05 03:04:00 line10
+2018-05-05 03:04:00 line11
+2018-05-05 03:04:00 line12
+ some exception trace here
+ some exception trace here
+ some exception trace here
+2018-06-05 04:05:00 line13
+2018-06-05 04:05:02.456789 line14
