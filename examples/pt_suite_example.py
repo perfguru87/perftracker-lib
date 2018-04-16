@@ -8,7 +8,7 @@ from math import sqrt
 bindir, basename = os.path.split(sys.argv[0])
 sys.path.append(os.path.join(bindir, "..", "lib"))
 
-from perftracker_client import ptSuite, ptHost, ptVM, ptComponent, ptProduct, ptTest
+from perftrackerlib.client import ptSuite, ptHost, ptVM, ptComponent, ptProduct, ptTest
 
 def main(suite):
     suite.addLink('Grafana', 'http://grafana.localdomain/')
