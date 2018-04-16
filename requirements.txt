@@ -1,0 +1,7 @@
+psycopg2
+httputils
+request
+selenium
+pyvirtualdisplay
+psutil
+pycurl
