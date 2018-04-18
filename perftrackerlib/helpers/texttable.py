@@ -13,10 +13,12 @@ __license__ = "MIT"
 import sys
 import datetime
 
-BLACK, RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, WHITE, GRAY = [("\x1b[1;%dm" % (30+c), "\x1b[0m") for c in range(9)]
+BLACK, RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, WHITE, GRAY = [("\x1b[1;%dm" % (30 + c), "\x1b[0m") for c in range(9)]
+
 
 class TextTable:
-    def __init__(self, max_col_width=[], col_separator = "  ", autoreplace={"0": "-"}, left_aligned=None, col_format=None):
+    def __init__(self, max_col_width=[], col_separator="  ", autoreplace={"0": "-"},
+                 left_aligned=None, col_format=None):
         self._rows = []
         self._styles = []
         self._max_col_width = max_col_width
@@ -26,22 +28,30 @@ class TextTable:
         self._col_separator = col_separator
         self._autoreplace = autoreplace
         self._col_type = []
-        self._left_aligned = left_aligned # list of left-aligned columns
-        self._col_format = col_format # list of left-aligned columns
+        self._left_aligned = left_aligned  # list of left-aligned columns
+        self._col_format = col_format  # list of left-aligned columns
         self._has_colors = self._has_colors(sys.stdout)
         self._columns_count = 0
+
+    @staticmethod
+    def to_ascii(s):
+        if sys.version_info[0] < 3:
+            return s.encode('ascii', 'ignore') if isinstance(s, unicode) else s
+        if isinstance(s, bytes):
+            return s.decode("utf-8")
+        return s
 
     def _has_colors(self, stream):
         if not hasattr(stream, "isatty"):
             return False
         if not stream.isatty():
-            return False # auto color only on TTYs
+            return False  # auto color only on TTYs
 
         try:
             import curses
             curses.setupterm()
             return curses.tigetnum("colors") > 2
-        except:
+        except RuntimeError:
             # guess false in case of error
             return False
 
@@ -49,9 +59,11 @@ class TextTable:
         if self._format:
             return
         for columns in self._rows:
-            if isinstance(columns, str) or isinstance(columns, unicode):
+            if isinstance(columns, str):
                 continue
-            for c in xrange(0, len(columns)):
+            if sys.version_info[0] < 3 and isinstance(columns, unicode):
+                continue
+            for c in range(0, len(columns)):
                 if len(self._col_width) <= c:
                     self._col_width.append(0)
                 val = self._format_value(c, columns[c])
@@ -60,7 +72,7 @@ class TextTable:
                         self._col_width[c] > self._max_col_width[c]:
                     self._col_width[c] = self._max_col_width[c]
         self._format = ""
-        for n in xrange(0, len(self._col_width)):
+        for n in range(0, len(self._col_width)):
             c = self._col_width[n]
             if self._left_aligned and n in self._left_aligned:
                 self._format += "%%-%ds" % c
@@ -70,18 +82,20 @@ class TextTable:
             self._total_width += c + len(self._col_separator)
 
     def _format_value(self, column, val):
-        if val == None:
+        if val is None:
             s = ""
         try:
-            if self._col_format and self._col_format.has_key(column):
+            if self._col_format and column in self._col_format:
                 val = self._col_format[column] % val
-        except:
+        except RuntimeError:
             pass
-        if isinstance(val, int) or isinstance(val, float) or isinstance(val, long) or isinstance(val, datetime.datetime) or val == None:
+        if isinstance(val, int) or isinstance(val, float) or isinstance(val, datetime.datetime) or val is None:
+            s = str(val)
+        elif sys.version_info[0] < 3 and isinstance(val, long):
             s = str(val)
         else:
-            s = val.encode('ascii', 'ignore')
-        if self._autoreplace.has_key(s):
+            s = TextTable.to_ascii(val)
+        if s in self._autoreplace:
             return str(self._autoreplace[s])
         return s
 
@@ -90,19 +104,18 @@ class TextTable:
             if not self._columns_count:
                 self._columns_count = len(values)
             elif len(values) != self._columns_count:
-                raise Exception("columns number mismatch. It must be %d, but get: %s" % \
-                    (self._columns_count, str(values)))
+                raise Exception("columns number mismatch. It must be %d, but get: %s" %
+                                (self._columns_count, str(values)))
         self._rows.append(values)
         if not self._has_colors:
-            style=None
+            style = None
         self._styles.append(style)
 
     def get_lines(self):
         lines = []
         self._init_format()
         for columns in self._rows:
-            if isinstance(columns, unicode):
-                columns = columns.encode('ascii', 'ignore')
+            columns = TextTable.to_ascii(columns)
             if isinstance(columns, str):
                 if len(columns) == 1:
                     lines.append(columns * self._total_width)
@@ -110,21 +123,21 @@ class TextTable:
                     lines.append(columns)
             else:
                 _columns = []
-                for n in xrange(0, len(columns)):
+                for n in range(0, len(columns)):
+                    col = TextTable.to_ascii(columns[n])
+
                     if len(self._max_col_width) > n and self._max_col_width[n] and \
-                            len(str(columns[n])) > self._max_col_width[n]:
-                        _columns.append(str(columns[n])[:self._max_col_width[n]-3] + "...")
+                            len(str(col)) > self._max_col_width[n]:
+                        _columns.append(str(col)[:self._max_col_width[n] - 3] + "...")
                     else:
-                        if isinstance(columns[n], unicode):
-                            columns[n] = columns[n].encode('ascii', 'ignore')
-                        if isinstance(columns[n], str):
+                        if isinstance(col, str):
                             if self._left_aligned and n in self._left_aligned:
                                 fmt = str("%%-%ds" % self._col_width[n])
                             else:
                                 fmt = str("%%%ds" % self._col_width[n])
-                            _columns.append(fmt % self._format_value(n, columns[n]))
+                            _columns.append(fmt % self._format_value(n, col))
                         else:
-                            _columns.append(self._format_value(n, columns[n]))
+                            _columns.append(self._format_value(n, col))
                 try:
                     line = self._format % tuple(_columns)
                 except TypeError:
