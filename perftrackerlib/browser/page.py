@@ -11,7 +11,6 @@ __license__ = "MIT"
 A browser Page helper
 """
 
-from utils import parse_url
 import time
 import copy
 import logging
@@ -21,8 +20,8 @@ import pickle
 import base64
 from collections import defaultdict
 
-sys.path.append(os.path.join(os.path.split(os.path.abspath(__file__))[0], ".."))
-from browser.utils import get_common_url_prefix
+sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
+from browser.utils import parse_url, get_common_url_prefix
 from helpers.texttable import TextTable
 
 

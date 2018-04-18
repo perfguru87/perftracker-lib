@@ -61,7 +61,8 @@ Page classes:
 
 """
 
-from page import Page, PageStats, PageTimeline
+sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
+from browser.page import Page, PageStats, PageTimeline
 
 
 ################################################################
