@@ -217,7 +217,7 @@ class PageRequest:
                 return True
         return False
 
-    def is_oK(self):
+    def is_ok(self):
         if self.longpoll:
             return True
         try:
