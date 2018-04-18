@@ -555,6 +555,31 @@ class PageStats:
         self.iterations = []
         self.id = id
 
+    def get_summary(self, common_prefix=""):
+        if not len(self.iterations):
+            return None, None, None, None, None, None, None
+
+        screen = self.iterations[0].get_full_name(common_prefix)
+        iterations = len(self.iterations)
+        n = float(iterations)
+
+        size = 0
+        errs = 0
+        uncached = 0
+        repeated = 0
+        foreign = 0
+        dur = 0
+
+        for i in self.iterations:
+            size += i.length
+            errs += len(i.get_error_reqs())
+            uncached += len(i.get_uncached_reqs())
+            repeated += i.get_repeated_reqs_cnt()
+            foreign += len(i.get_foreign_reqs())
+            dur += i.dur
+
+        return screen, iterations, size / n, errs / n, uncached / n, repeated / n, foreign / n, dur / n
+
     @staticmethod
     def print_title(title):
         print(title.upper())
@@ -567,12 +592,13 @@ class PageStats:
             print("  " + "\n  ".join(description))
             print("")
 
-    def print_page_timeline_header(self, title=True, description=None):
+    @staticmethod
+    def print_page_timeline_header(title=True, description=None):
         print("")
         if title and not isinstance(title, str):
             title = "Page(s) timeline and memory usage"
         if title:
-            self.print_title(title)
+            PageStats.print_title(title)
 
             j = PageTimeline.jstypes
             print("  http://www.w3.org/TR/navigation-timing/timing-overview.png")
@@ -591,17 +617,17 @@ class PageStats:
             print("  - MemUsg(KB) - page memory usage (RSS delta between browser start and after page fully loaded)")
             print("")
 
-        self.print_description(description)
+        PageStats.print_description(description)
 
         print("  Iter # " + " |", end=" ")
         for n in range(0, len(PageTimeline.types) - 1):
-            print("%s %s" % (PageTimeline.types[n], self.separator), end=" ")
+            print("%s %s" % (PageTimeline.types[n], PageStats.separator), end=" ")
         print(PageTimeline.types[-1], end=" ")
         print("| Total(ms) | MemUsg(KB)")
-        print("  " + "-" * self.width)
+        print("  " + "-" * PageStats.width)
 
     @staticmethod
-    def print_summary(pages_stats, title="Summary", perf_atomic_format=False):
+    def print_summary(pages_stats, title="Summary"):
         print("")
         if title and not isinstance(title, str):
             title = "Summary"
@@ -619,7 +645,7 @@ class PageStats:
                 for r in p.requests:
                     urls.add(r.url)
 
-        pfx = get_common_url_prefix(urls)
+        common_prefix = get_common_url_prefix(urls)
 
         def browser_dict():
             return defaultdict(url_dict)
@@ -632,34 +658,24 @@ class PageStats:
 
         reqs = defaultdict(browser_dict)
 
-        perf_atomic_output = []
-
         prev_psid = ""
         for ps in pages_stats:
-            n = 1.0 * len(ps.iterations)
-            size = sum([p.length for p in ps.iterations]) / (1024 * n)
-            errs = sum([len(p.get_error_reqs()) for p in ps.iterations]) / n
-            repeated = sum([p.get_repeated_reqs_cnt() for p in ps.iterations]) / n
-            foreign = sum([len(p.get_foreign_reqs()) for p in ps.iterations]) / n
-            dur = sum([p.dur for p in ps.iterations]) / n
+
+            screen, iterations, size, errs, uncached, repeated, foreign, dur = ps.get_summary(common_prefix)
+
             if prev_psid != ps.id:
                 t.add_row(str(ps.id) + ":")
                 prev_psid = ps.id
 
-            screen = ps.iterations[0].get_full_name(pfx)
-            t.add_row(["  " + screen, int(n),
-                       ("%5.0f  %4s  %4s  %4s") %
-                       (sum([len(p.get_uncached_reqs()) for p in ps.iterations]) / n,
+            t.add_row(["  " + screen, iterations,
+                       ("%5s  %4s  %4s  %4s") %
+                       ("%5.0f" % uncached if uncached else "-",
                         "%4.0f" % repeated if repeated else "-",
                         "%4.0f" % foreign if foreign else "-",
-                        "%.1f !" % (errs) if errs else "-"),
+                        "%.1f!" % (errs) if errs else "-"),
                        "%.1f" % size,
                        "%.0f" % dur,
-                       "%.0f" % (sum([p.ram_usage_kb for p in ps.iterations]) / n)])
-
-            if perf_atomic_format:
-                perf_atomic_output.append("test: %s: %s; loops: %d; time: %.3f; rate: { %.3f } sec; less_better: 1;" %
-                                          (ps.id, screen, int(n), int(dur * int(n)) / 1000.0, int(dur) / 1000.0))
+                       "%.0f" % (sum([p.ram_usage_kb for p in ps.iterations]) / float(iterations))])
 
             for p in ps.iterations:
                 for r in p.requests:
@@ -692,11 +708,6 @@ class PageStats:
                 for row in rows:
                     wt.add_row(row)
             print("  " + "\n  ".join(wt.get_lines()))
-
-        if perf_atomic_output:
-            print("")
-            PageStats.print_title("perf-atomic output format")
-            print("\n".join(perf_atomic_output))
 
     def add_iteration(self, page):
         self.iterations.append(page)
