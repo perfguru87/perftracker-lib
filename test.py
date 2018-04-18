@@ -18,8 +18,10 @@ libs = [
     ("perftrackerlib/browser/browser_python.py", 55),
     ("perftrackerlib/browser/utils.py", 19),
     ("perftrackerlib/browser/page.py", 15),
+    ("perftrackerlib/browser/cp_engine.py", 30),
     ("perftrackerlib/browser/browser_chrome.py", 80),
     ("perftrackerlib/browser/browser_firefox.py", 35),
+    ("perftrackerlib/browser/cp_crawler.py", 50),
     ]
 
 def test_one(cmdline):

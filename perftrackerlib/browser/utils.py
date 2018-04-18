@@ -26,7 +26,7 @@ else:
     import http.client as httplib
 
 
-def gen_urls(path):
+def gen_urls_from_index_file(path):
     urls = []
     for p in path:
         if os.path.exists(p):
