@@ -10,6 +10,7 @@ sys.path.append(os.path.join(bindir, "..", "lib"))
 
 from perftrackerlib.client import ptSuite, ptHost, ptVM, ptComponent, ptProduct, ptTest
 
+
 def main(suite):
     suite.addLink('Grafana', 'http://grafana.localdomain/')
     suite.addLink('Login page', 'http://192.168.100.3/login')
@@ -32,7 +33,7 @@ def main(suite):
     vm4.addNode(ptComponent("UI#2", version="1.0.13"))
 
     g = "Latency tests"
-    
+
     suite.addTest(ptTest("Simple user login test", description="Login under a user, 1 parallel client, time includes navigation to home page",
                          group=g, metrics="sec", scores=[0.6, 0.72, 0.65], deviations=[0.05, 0.12, 0.03], loops=100))
     suite.addTest(ptTest("Simple admin login test", description="Login under admin, 1 parallel client",
@@ -42,22 +43,22 @@ def main(suite):
         suite.addTest(ptTest("Home page response time", group=g, metrics="sec",
                              category="%d parallel clients" % (2 ** p),
                              scores=[0.3 + sqrt(p) + random.randint(0, 20) / 40.0]))
- 
+
     for p in range(1, 20 + random.randint(0, 10)):
         suite.addTest(ptTest("Pages response time, 1 parallel client", group=g, metrics="sec",
                              category="page #%3d" % p,
                              scores=[0.3 + random.randint(0, 20) / 40.0],
-                             errors = ['4xx error'] if random.randint(0, 30) == 0 else [],
-                             warnings = ['HTTP 500'] if random.randint(0, 20) == 0 else [],
-                             status = "FAILED" if random.randint(0, 25) == 0 else "SUCCESS"))
- 
+                             errors=['4xx error'] if random.randint(0, 30) == 0 else [],
+                             warnings=['HTTP 500'] if random.randint(0, 20) == 0 else [],
+                             status="FAILED" if random.randint(0, 25) == 0 else "SUCCESS"))
+
     for p in range(1, 100 + random.randint(0, 100)):
         suite.addTest(ptTest("Home page response time", group=g, metrics="sec",
                              category="Database size %d GB" % p,
-                             scores=[0.3 + (sqrt(p) + random.randint(0,20)) / 40],
-                             errors = ['4xx error'] if random.randint(0, 30) == 0 else [],
-                             warnings = ['HTTP 500'] if random.randint(0, 20) == 0 else [],
-                             status = "FAILED" if random.randint(0, 25) == 0 else "SUCCESS"))
+                             scores=[0.3 + (sqrt(p) + random.randint(0, 20)) / 40],
+                             errors=['4xx error'] if random.randint(0, 30) == 0 else [],
+                             warnings=['HTTP 500'] if random.randint(0, 20) == 0 else [],
+                             status="FAILED" if random.randint(0, 25) == 0 else "SUCCESS"))
 
     suite.upload()
 
