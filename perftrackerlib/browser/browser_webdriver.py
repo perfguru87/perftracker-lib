@@ -262,7 +262,6 @@ class BrowserWebdriver(BrowserBase):
     def print_browser_info(self):
         c = self.driver.capabilities
         self.print_stats_title("Browser summary")
-        print("C:", c)
         print("  - platform: %s" % self._get_val(c, ['platform', 'platformName']))
         print("  - browser:  %s %s" % (c['browserName'], self._get_val(c, ['version', 'browserVersion'])))
         print("  - PID:      %d" % self.pid)
