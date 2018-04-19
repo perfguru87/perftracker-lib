@@ -252,11 +252,19 @@ class BrowserWebdriver(BrowserBase):
             raise BrowserExc(e)
         return True
 
+    @staticmethod
+    def _get_val(d, keys):
+        for key in keys:
+            if key in d:
+                return d[key]
+        return "unknown"
+
     def print_browser_info(self):
         c = self.driver.capabilities
         self.print_stats_title("Browser summary")
-        print("  - platform: %s" % c['platform'])
-        print("  - browser:  %s %s" % (c['browserName'], c['version']))
+        print("C:", c)
+        print("  - platform: %s" % self._get_val(c, ['platform', 'platformName']))
+        print("  - browser:  %s %s" % (c['browserName'], self._get_val(c, ['version', 'browserVersion'])))
         print("  - PID:      %d" % self.pid)
         print("  - log file: %s" % self.log_path)
 
