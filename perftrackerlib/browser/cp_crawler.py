@@ -117,7 +117,7 @@ class CPBrowserRunner:
                 continue
             for cpmx in c.menu_xpaths[0]:
                 c.switch_to_frame(cpmx.frame, verbose=False)
-                if self.browser.driver.find_elements_by_xpath(cpmx.link):
+                if self.browser.driver.find_elements_by_xpath(cpmx.link_xpath):
                     logging.info("%s control panel detected" % c.type)
                     c.switch_to_default_content()
                     return c
