@@ -146,6 +146,10 @@ class CPBrowserRunner:
             urls = new_urls
 
         if self.opts.menu_walk:
+            if not self.user:
+                name, url = urls[0]
+                page = self.browser.navigate_to(url, name=name)
+
             CP = self._detect_cp_type()
             if not CP:
                 logging.error("Can't recognize Control Panel, aborting")
