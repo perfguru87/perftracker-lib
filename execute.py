@@ -1,7 +1,3 @@
-# (C) 2017 Ingram Micro Inc.  All rights reserved.
-# Odin is a registered copyright of Ingram Micro Inc. 2017. All rights reserved.
-# http://www.odin.com
-
 import logging
 import subprocess
 
