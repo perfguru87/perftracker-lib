@@ -1,6 +1,6 @@
 psycopg2
 httputils
-request
+requests
 selenium
 pyvirtualdisplay
 psutil
