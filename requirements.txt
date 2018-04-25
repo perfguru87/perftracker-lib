@@ -1,5 +1,4 @@
 psycopg2
-httputils
 requests
 selenium
 pyvirtualdisplay
