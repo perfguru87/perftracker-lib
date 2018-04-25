@@ -117,9 +117,9 @@ class LargeLogFile:
             return
 
         if self.filename.endswith(".gz"):
-            f = gzip.open(filename, 'r')
+            f = gzip.open(self.filename, 'r')
         elif self.filename.endswith(".bz2"):
-            f = bz2.BZ2File(filename, 'r')
+            f = bz2.BZ2File(self.filename, 'r')
         else:
             f = open(self.filename, 'r')  # FIXME: we need rb for correct behaviour on Windows
         self._file_obj = FileWithBackspaces(f)
