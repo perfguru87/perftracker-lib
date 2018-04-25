@@ -419,8 +419,7 @@ class CPCrawler:
     def init_logging(self, opts):
         if opts.log2file or opts.log_file:
             logging.basicConfig(filename=self.logfile, level=logging.DEBUG)
-            print("Redirecting %sverbose logs to %s" %
-                  ("browser.%d " % self.browser_id if self.browser_id is not None else "", self.logfile))
+            print("Redirecting verbose logs to %s" % self.logfile)
         else:
             level = logging.DEBUG if opts.verbose > 1 else logging.INFO if opts.verbose else logging.WARNING
             logging.basicConfig(level=level)
