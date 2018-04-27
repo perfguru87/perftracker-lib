@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 
 # -*- coding: utf-8 -*-
 __author__ = "perfguru87@gmail.com"
@@ -22,11 +22,10 @@ import tempfile
 import atexit
 import shutil
 
-sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
-from browser.utils import parse_url, get_val
-from browser.browser_base import BrowserExc
-from browser.browser_webdriver import BrowserWebdriver, abort
-from browser.page import PageEvent, PageRequest
+from .utils import parse_url, get_val
+from .browser_base import BrowserExc
+from .browser_webdriver import BrowserWebdriver, abort
+from .page import PageEvent, PageRequest
 
 try:
         from selenium import webdriver

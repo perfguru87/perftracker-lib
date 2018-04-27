@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 
 # -*- coding: utf-8 -*-
 __author__ = "perfguru87@gmail.com"
@@ -61,8 +61,7 @@ Page classes:
 
 """
 
-sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
-from browser.page import Page, PageStats, PageTimeline
+from .page import Page, PageStats, PageTimeline
 
 
 ################################################################
@@ -80,6 +79,10 @@ class BrowserExcTimeout(BrowserExc):
     def __init__(self, msg=""):
         BrowserExc.__init__(self, "%s" % msg)
         self.message = "browser module timeout: %s" % msg
+
+
+class BrowserExcNotImplemented(BrowserExc):
+    pass
 
 
 class BrowserExcNotSupported(BrowserExc):

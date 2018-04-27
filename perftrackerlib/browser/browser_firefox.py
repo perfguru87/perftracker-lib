@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 
 # -*- coding: utf-8 -*-
 __author__ = "perfguru87@gmail.com"
@@ -12,7 +12,6 @@ The Firefox browser helper
 """
 
 import logging
-import httputils
 import re
 import os
 import datetime
@@ -20,15 +19,15 @@ import time
 import json
 import sys
 
-sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
-from helpers.timeparser import TimeParser
-from helpers.largelogfile import LargeLogFile
-import helpers.timeutil as timeutil
+from ..helpers.timeparser import TimeParser
+from ..helpers.largelogfile import LargeLogFile
+from ..helpers import timeutil
 
-from browser.utils import parse_url, get_val
-from browser.browser_webdriver import BrowserWebdriver, abort
-from browser.browser_base import BrowserExc
-from browser.page import PageRequest, PageTimeline
+from .utils import parse_url, get_val
+from .browser_webdriver import BrowserWebdriver, abort
+from .browser_base import BrowserExc
+from .page import PageRequest, PageTimeline
+from . import httputils
 
 try:
     from selenium import webdriver
