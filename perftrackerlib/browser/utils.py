@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 
 # -*- coding: utf-8 -*-
 __author__ = "perfguru87@gmail.com"
@@ -14,6 +14,7 @@ A set of various free function helpers
 import os
 import re
 import sys
+import logging
 
 try:
     from urllib.parse import urlparse
@@ -26,6 +27,9 @@ else:
     import http.client as httplib
 
 
+reRawCookie = re.compile(r"[Ss]et-[Cc]ookie:\s*(.*)\r\n")
+
+
 def gen_urls_from_index_file(path):
     urls = []
     for p in path:
@@ -36,7 +40,7 @@ def gen_urls_from_index_file(path):
             else:
                 urls += ["file://" + p]
         else:
-            from pybrowser import BrowserPython
+            from .browser_python import BrowserPython
             b = BrowserPython()
             if not p.startswith("http"):
                 p = "http://%s" % p
@@ -82,6 +86,7 @@ def parse_url(url, server=False, args=False):
     if not p.netloc and not url.startswith("file://"):
         msg = "Can't parse network location for the following url: %s" % url
         logging.error(msg)
+        from .browser_base import BrowserExc
         raise BrowserExc(msg)
 
     if server:
@@ -115,6 +120,15 @@ def get_common_url_prefix(urls):
 
 
 def extract_cookies(http_response):
+    """
+    Httplib specific function: HTTPResponse has some issue regarding
+    to multiple 'set-cookie' headers. It just do ','.join(cookies), and
+    there will be a trouble if cookie has ',' inside body (and it usually has!)
+    So in case of multiple 'set-cookie' headers we should retrieve them
+    manually (not so hard, actually)
+    :param http_response: HTTPResponse object
+    :return: list of strings with cookies
+    """
     cookies = []
     if type(http_response) in (httplib.HTTPConnection, httplib.HTTPSConnection):
         raw_cookies = http_response.msg.getallmatchingheaders('set-cookie')

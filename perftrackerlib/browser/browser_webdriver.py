@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 
 # -*- coding: utf-8 -*-
 __author__ = "perfguru87@gmail.com"
@@ -12,7 +12,6 @@ Skeleton for webdriver based browser
 """
 
 import logging
-import httputils
 import re
 import os
 import datetime
@@ -23,15 +22,14 @@ import tempfile
 import atexit
 import shutil
 
-sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
-import helpers.timeparser
-import helpers.largelogfile
-import helpers.timeutil
+from ..helpers import timeparser
+from ..helpers import largelogfile
+from ..helpers import timeutil
 
-from browser.utils import parse_url, get_val
-from browser.browser_base import BrowserBase, BrowserExc, BrowserExcTimeout
-from browser.page import Page, PageEvent, PageRequest, PageTimeline
-from browser.browser_base import DEFAULT_WAIT_TIMEOUT, DEFAULT_AJAX_THRESHOLD
+from .utils import parse_url, get_val
+from .browser_base import BrowserBase, BrowserExc, BrowserExcTimeout, BrowserExcNotImplemented
+from .page import Page, PageEvent, PageRequest, PageTimeline
+from .browser_base import DEFAULT_WAIT_TIMEOUT, DEFAULT_AJAX_THRESHOLD
 
 
 if sys.version_info[0] < 3:
@@ -273,11 +271,11 @@ class BrowserWebdriver(BrowserBase):
 
     # === virtual methods that must be implemented in every webdriver-based browser === #
 
-    def _browser_parse_logs(self):
-        raise BrowserExcNotImplemented
+    def _browser_parse_logs(self, page, logs):
+        raise BrowserExcNotImplemented()
 
-    def _browser_get_events(self):
-        raise BrowserExcNotImplemented
+    def _browser_get_events(self, page):
+        raise BrowserExcNotImplemented()
 
     # === webdriver specific === #
 
@@ -433,7 +431,7 @@ class BrowserWebdriver(BrowserBase):
                 try:
                     el = self.dom_find_element_by_name(name)
                 except BrowserExc:
-                    self.log_info("Login successed")
+                    self.log_info("Login succeed")
                     return True
 
             except BrowserExc as e:
@@ -450,7 +448,7 @@ class BrowserWebdriver(BrowserBase):
                 try:
                     el = self.dom_find_element_by_id(id)
                 except BrowserExc:
-                    self.log_info("Login successed")
+                    self.log_info("Login succeed")
                     return True
 
             except BrowserExc as e:

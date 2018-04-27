@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 
 # -*- coding: utf-8 -*-
 __author__ = "perfguru87@gmail.com"
@@ -34,26 +34,21 @@ import re
 import shutil
 import copy
 from tempfile import gettempdir
-
-from multiprocessing.dummy import Pool as ThreadPool
+from optparse import OptionParser, OptionGroup
 from multiprocessing import Process, Queue
 
-bindir, basename = os.path.split(sys.argv[0])
-sys.path.append(os.path.join(bindir, "..", "lib"))
-
-basename = basename.split(".")[0]
-
-sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
-from optparse import OptionParser, OptionGroup
-from browser.browser_base import BrowserExc
-from browser.browser_python import BrowserPython
-from browser.browser_chrome import BrowserChrome
-from browser.browser_firefox import BrowserFirefox
-from browser.page import PageStats
-from browser.utils import gen_urls_from_index_file
-from browser.cp_engine import CPEngineBase
-from helpers.texttable import TextTable
+from .browser_base import BrowserExc
+from .browser_python import BrowserPython
+from .browser_chrome import BrowserChrome
+from .browser_firefox import BrowserFirefox
+from .page import PageStats
+from .utils import gen_urls_from_index_file
+from .cp_engine import CPEngineBase
+from ..helpers.texttable import TextTable
 from selenium.webdriver.remote.remote_connection import LOGGER as selenium_logger
+
+bindir, basename = os.path.split(sys.argv[0])
+basename = basename.split(".")[0]
 
 BROWSERS = (BrowserChrome, BrowserFirefox, BrowserPython)
 

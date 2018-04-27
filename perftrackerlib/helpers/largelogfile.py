@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 
 # -*- coding: utf-8 -*-
 __author__ = "perfguru87@gmail.com"
@@ -17,8 +17,7 @@ import bz2
 import datetime
 import logging
 
-sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
-from helpers.timeparser import TimeParser, TimeParserException
+from .timeparser import TimeParser, TimeParserException
 
 
 class LargeFileException(RuntimeError):

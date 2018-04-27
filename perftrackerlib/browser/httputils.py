@@ -12,7 +12,6 @@ from StringIO import StringIO
 
 from HTMLParser import HTMLParser
 
-reRawCookie = re.compile(r"[Ss]et-[Cc]ookie:\s*(.*)\r\n")
 reScriptLocation = re.compile(r"top\.location[\.href]*=\'(.*)\'")
 reFormButtonUrl = re.compile(r"doSubmit\(\'(.*)\'")
 
@@ -270,31 +269,6 @@ def unescape(s):
     s = s.replace("&apos;", "'")
     s = s.replace("&amp;", "&")
     return s
-
-def extract_cookies(http_response):
-    """
-    Httplib specific function: HTTPResponse has some issue regarding
-    to multiple 'set-cookie' headers. It just do ','.join(cookies), and
-    there will be a trouble if cookie has ',' inside body (and it usually has!)
-    So in case of multiple 'set-cookie' headers we should retrieve them
-    manually (not so hard, actually)
-    :param http_response: HTTPResponse object
-    :return: list of strings with cookies
-    """
-    cookies = []
-    if type(http_response) in (httplib.HTTPConnection, httplib.HTTPSConnection):
-        raw_cookies =  http_response.msg.getallmatchingheaders('set-cookie')
-        if not raw_cookies:
-            return []
-        if len(raw_cookies) == 1:
-            return [http_response.getheader('set-cookie')]
-
-        for raw_cookie in raw_cookies:
-            m = reRawCookie.search(raw_cookie)
-            cookies.append(m.group(1))
-        return cookies
-    # for other implementations (e.g. pycurl just assume list of response headers is correct)
-    return [value for hdr, value in http_response.getheaders() if hdr.lower() == "set-cookie"]
 
 
 def log2file(text):
