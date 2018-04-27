@@ -16,7 +16,7 @@ import threading
 import socket
 import re
 import logging
-import sys
+import six
 import pycurl
 
 try:
@@ -24,7 +24,7 @@ try:
 except ImportError:
     from urlparse import urlparse
 
-if sys.version_info[0] < 3:
+if six.PY2:
     import httplib
     from StringIO import StringIO as BytesIO
 else:
@@ -63,7 +63,7 @@ class HTTPConnectionPycurl:
 
     def request(self, verb, path, body, headers):
         c = self.curl
-        hdrs = [str(h + ": " + v) for h, v in headers.items()] if headers else []
+        hdrs = [str(h + ": " + v) for h, v in six.iteritems(headers)] if headers else []
         verb = verb.upper()
         if verb == 'GET':
             if self.cleaning_needed:
