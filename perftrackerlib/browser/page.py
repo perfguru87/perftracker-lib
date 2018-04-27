@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 
 # -*- coding: utf-8 -*-
 __author__ = "perfguru87@gmail.com"
@@ -20,9 +20,8 @@ import pickle
 import base64
 from collections import defaultdict
 
-sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
-from browser.utils import parse_url, get_common_url_prefix
-from helpers.texttable import TextTable
+from .utils import parse_url, get_common_url_prefix
+from ..helpers.texttable import TextTable
 
 
 class PageTimeline:

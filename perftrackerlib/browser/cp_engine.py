@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 
 # -*- coding: utf-8 -*-
 __author__ = "perfguru87@gmail.com"
@@ -17,9 +17,8 @@ import logging
 import time
 import re
 
-sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
-from browser.browser_base import BrowserBase, BrowserExc, BrowserExcTimeout, DEFAULT_WAIT_TIMEOUT
-from browser.browser_python import BrowserPython
+from .browser_base import BrowserBase, BrowserExc, BrowserExcTimeout, DEFAULT_WAIT_TIMEOUT
+from .browser_python import BrowserPython
 from selenium.common.exceptions import ElementNotVisibleException
 from selenium.common.exceptions import NoSuchElementException
 from selenium.common.exceptions import WebDriverException
