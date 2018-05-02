@@ -30,15 +30,18 @@ def test_one(cmdline):
     execute(cmdline)
     print ("OK")
 
+
+def lib2mod(lib):
+    modname = lib[0:len(lib)-3] if lib.endswith(".py") else lib
+    return modname.replace("/", ".")
+
+
 def coverage_one(lib, coverage_target):
     # Use '# pragma: no cover' to exclude code
     # see http://coverage.readthedocs.io/en/coverage-4.2/excluding.html
 
-    modname = lib[0:len(lib)-3] if lib.endswith(".py") else lib
-    modname = modname.replace("/", ".")
-
     print ("coverage run %s ..." % lib, end=' ')
-    execute("coverage run -m \"%s\"" % modname)
+    execute("coverage run -m \"%s\"" % lib2mod(lib))
     _, out, ext = execute("coverage report | grep %s" % lib)
     try:
         coverage = out.split()[3]
@@ -64,8 +67,9 @@ def test_all():
         coverage_one(lib, coverage_target)
 
     for lib, _ in libs:
-        test_one("python2.7 \"%s\"" % os.path.join(root, lib))
-        test_one("python3 \"%s\"" % os.path.join(root, lib))
+        mod = lib2mod(lib)
+        test_one("python2.7 -m \"%s\"" % mod)
+        test_one("python3 -m \"%s\"" % mod)
 
 #   test_one("2to3 -p \"%s\"" % root)
 #   for t in tests:
