@@ -51,7 +51,7 @@ class TextTable:
             import curses
             curses.setupterm()
             return curses.tigetnum("colors") > 2
-        except RuntimeError:
+        except (RuntimeError, ImportError):
             # guess false in case of error
             return False
 

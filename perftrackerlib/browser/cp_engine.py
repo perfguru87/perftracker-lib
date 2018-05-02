@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 
 # -*- coding: utf-8 -*-
 __author__ = "perfguru87@gmail.com"
@@ -17,18 +17,18 @@ import logging
 import time
 import re
 
-sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
-from browser.browser_base import BrowserBase, BrowserExc, BrowserExcTimeout, DEFAULT_WAIT_TIMEOUT
-from browser.browser_python import BrowserPython
+from .browser_base import BrowserBase, BrowserExc, BrowserExcTimeout, DEFAULT_WAIT_TIMEOUT
+from .browser_python import BrowserPython
 from selenium.common.exceptions import ElementNotVisibleException
 from selenium.common.exceptions import NoSuchElementException
 from selenium.common.exceptions import WebDriverException
+from selenium.common.exceptions import StaleElementReferenceException
 
 
 reHTML = re.compile('<.*?>')
 
 
-def removeHtmlTags(text):
+def remove_html_tags(text):
     return re.sub(reHTML, '', text)
 
 
@@ -201,11 +201,25 @@ class CPEngineBase:
                     continue
 
             self.log_debug("Looking for xpath: '%s'" % x.link_xpath)
-            for link_el in self.browser.driver.find_elements_by_xpath(x.link_xpath):
-                self.log_info("found menu item element: '%s'" % link_el)
-                link = link_el.get_attribute('href')
+            menu_elements = self.browser.driver.find_elements_by_xpath(x.link_xpath)
+            i = 0
+            while i < len(menu_elements):
+                link_el = menu_elements[i]
+                try:
+                    link = link_el.get_attribute('href')
+                except StaleElementReferenceException:
+                    # previous click caused dom change, so re-load menu items (assuming their sequence is preserved)
+                    menu_elements = self.browser.driver.find_elements_by_xpath(x.link_xpath)
+                    if i >= len(menu_elements):
+                        continue  # menu has shrunk suddenly
+                    link_el = menu_elements[i]
+                    link = link_el.get_attribute('href')
+                i += 1
+
                 if not link:
                     link = link_el.get_attribute('innerHTML')
+
+                self.log_info("found menu item element: '%s'" % link)
 
                 if x.title_xpath:
                     title_els = link_el.find_elements_by_xpath(x.title_xpath)

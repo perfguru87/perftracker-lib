@@ -7,14 +7,16 @@ __author__ = "perfguru87@gmail.com"
 __copyright__ = "Copyright 2018, The PerfTracker project"
 __license__ = "MIT"
 
-"""The library to work efficiently with very large log files
-"""
 
+"""
+    HTTP connection pool with LIFO logic, and 2 implementations of connections: pycurl (fast) and httplib (slow).
+    HTTPS is supported.
+"""
 import threading
 import socket
 import re
 import logging
-import sys
+import six
 import pycurl
 
 try:
@@ -22,7 +24,7 @@ try:
 except ImportError:
     from urlparse import urlparse
 
-if sys.version_info[0] < 3:
+if six.PY2:
     import httplib
     from StringIO import StringIO as BytesIO
 else:
@@ -61,7 +63,7 @@ class HTTPConnectionPycurl:
 
     def request(self, verb, path, body, headers):
         c = self.curl
-        hdrs = [str(h + ": " + v) for h, v in headers.items()] if headers else []
+        hdrs = [str(h + ": " + v) for h, v in six.iteritems(headers)] if headers else []
         verb = verb.upper()
         if verb == 'GET':
             if self.cleaning_needed:
@@ -135,6 +137,26 @@ class HTTPConnectionPycurl:
         self.response_headers.append((x[0].strip(), x[1].strip()))
 
 
+
+class _ctx_manager:
+    def __init__(self, pool):
+        self.pool = pool
+
+    def __enter__(self):
+        self.tup = self.pool.get()
+        return self.tup
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        con = self.tup[0]
+        if exc_type is not None or getattr(con, "_invalidate", False):
+            self.pool.cnt -= 1
+            self.pool._dctor(con)
+            # logging.error("!!!!pool.borrow.exit - error. cnt=%d, inpool=%d", pool.cnt, len(pool._items))
+        else:
+            self.pool.put(con)
+            # logging.error("!!!!pool.borrow.exit - ok. cnt=%d, inpool=%d", pool.cnt, len(pool._items))
+
+
 class LIFOPool(object):
     def __init__(self, ctor, dctor, max_items=10, verbose=None):
         self._ctor = ctor
@@ -181,24 +203,7 @@ class LIFOPool(object):
         with pool.borrow() as (x, is_new):
             do_stuff(x)
         """
-        pool = self
-
-        class wrapper(object):
-            def __enter__(self):
-                self.tup = pool.get()
-                return self.tup
-
-            def __exit__(self, exc_type, exc_value, traceback):
-                con = self.tup[0]
-                if exc_type is not None or getattr(con, "_invalidate", False):
-                    pool.cnt -= 1
-                    pool._dctor(con)
-                    # logging.error("!!!!pool.borrow.exit - error. cnt=%d, inpool=%d", pool.cnt, len(pool._items))
-                else:
-                    pool.put(con)
-                    # logging.error("!!!!pool.borrow.exit - ok. cnt=%d, inpool=%d", pool.cnt, len(pool._items))
-
-        return wrapper()
+        return _ctx_manager(self)
 
 
 class HTTPPool(LIFOPool):

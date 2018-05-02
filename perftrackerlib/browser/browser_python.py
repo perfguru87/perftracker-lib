@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 
 # -*- coding: utf-8 -*-
 __author__ = "perfguru87@gmail.com"
@@ -18,21 +18,19 @@ import copy
 import socket
 import re
 import time
+from threading import Lock
+from multiprocessing.dummy import Pool as ThreadPool
 
 if sys.version_info[0] < 3:
     from Cookie import SimpleCookie
 else:
     from http.cookies import SimpleCookie
 
-sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
-from browser.browser_base import BrowserBase, DEFAULT_WAIT_TIMEOUT, BrowserExc
-from browser.page import Page, PageRequest, PageRequestsGroup, PageWithActions
-from browser.utils import parse_url, extract_cookies
-from helpers.httppool import HTTPPool
-
-from threading import Lock
-from multiprocessing.dummy import Pool as ThreadPool
-import httputils
+from .browser_base import BrowserBase, DEFAULT_WAIT_TIMEOUT, BrowserExc
+from .page import Page, PageRequest, PageRequestsGroup, PageWithActions
+from .utils import parse_url, extract_cookies
+from ..helpers.httppool import HTTPPool
+from . import httputils
 
 
 class BrowserPythonNetlocData:
@@ -195,7 +193,7 @@ class BrowserPythonNetlocData:
         scheme, netloc, path_with_args = parse_url(req.url, args=True)
 
         if scheme not in ("http", "https", "ftp"):
-            msg = "Can't execute request on URL with unsupported scheme: %s, %s" % (scheme, url)
+            msg = "Can't execute request on URL with unsupported scheme: %s, %s" % (scheme, netloc)
             self.browser.log_error(msg)
             raise BrowserExc(msg)
 

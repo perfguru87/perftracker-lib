@@ -9,6 +9,8 @@ from setuptools import setup, find_packages
 from codecs import open
 from os import path
 
+import perftrackerlib
+
 here = path.abspath(path.dirname(__file__))
 
 # Get the long description from the README file
@@ -16,12 +18,12 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as f:
     long_description = f.read()
 
 setup(
-    name='perftracker-lib',
+    name='perftrackerlib',
 
     # Versions should comply with PEP440.  For a discussion on single-sourcing
     # the version across setup.py and the project code, see
     # https://packaging.python.org/en/latest/single_source_version.html
-    version='0.0.2',
+    version=perftrackerlib.__version__,
 
     description='Python package with perftracker client, tools, tests and libraries',
     long_description=long_description,

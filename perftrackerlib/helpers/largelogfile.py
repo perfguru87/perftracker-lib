@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 
 # -*- coding: utf-8 -*-
 __author__ = "perfguru87@gmail.com"
@@ -17,8 +17,7 @@ import bz2
 import datetime
 import logging
 
-sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
-from helpers.timeparser import TimeParser, TimeParserException
+from .timeparser import TimeParser, TimeParserException
 
 
 class LargeFileException(RuntimeError):
@@ -117,9 +116,9 @@ class LargeLogFile:
             return
 
         if self.filename.endswith(".gz"):
-            f = gzip.open(filename, 'r')
+            f = gzip.open(self.filename, 'r')
         elif self.filename.endswith(".bz2"):
-            f = bz2.BZ2File(filename, 'r')
+            f = bz2.BZ2File(self.filename, 'r')
         else:
             f = open(self.filename, 'r')  # FIXME: we need rb for correct behaviour on Windows
         self._file_obj = FileWithBackspaces(f)
