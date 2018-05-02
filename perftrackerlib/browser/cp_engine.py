@@ -36,7 +36,7 @@ class CPMenuItemXpath:
     def __init__(self, level, frame, link_xpath, title_xpath, menu_url_clicks=True, menu_dom_clicks=True):
         self.level = level  # menu level, 0 - 10...
         self.frame = frame  # menu frame name
-        self.link_xpath = link_xpath  # clickable menu item element xpath 
+        self.link_xpath = link_xpath  # clickable menu item element xpath
         self.title_xpath = title_xpath  # relative xpath to fetch the menu item title
         self.menu_url_clicks = menu_url_clicks
         self.menu_dom_clicks = menu_dom_clicks
@@ -224,7 +224,8 @@ class CPEngineBase:
                 if x.title_xpath:
                     title_els = link_el.find_elements_by_xpath(x.title_xpath)
                     if not title_els or not len(title_els) or not title_els[0].get_attribute("innerHTML"):
-                        self.log_error("WARNING: can't get title for menu element: %s\nusing: %s" % (link, x.title_xpath))
+                        self.log_error("WARNING: can't get title for menu element: %s\nusing: %s" %
+                                       (link, x.title_xpath))
                         continue
                     title_el = title_els[0]
                 else:

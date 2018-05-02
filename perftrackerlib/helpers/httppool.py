@@ -137,7 +137,6 @@ class HTTPConnectionPycurl:
         self.response_headers.append((x[0].strip(), x[1].strip()))
 
 
-
 class _ctx_manager:
     def __init__(self, pool):
         self.pool = pool
