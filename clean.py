@@ -10,10 +10,10 @@ from execute import execute
 
 
 def clean_one(cmdline):
-    print ("Running: %s ..." % cmdline, end=' ')
+    print("Running: %s ..." % cmdline, end=' ')
     sys.stdout.flush()
     execute(cmdline)
-    print ("OK")
+    print("OK")
 
 
 def clean_all():
