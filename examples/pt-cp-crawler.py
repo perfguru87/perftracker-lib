@@ -8,13 +8,13 @@ import time
 from tempfile import gettempdir
 
 bindir, basename = os.path.split(os.path.abspath(__file__))
-sys.path.append(os.path.join(bindir, "..", "perftrackerlib"))
+sys.path.append(os.path.join(bindir, ".."))
 
 basename = basename.split(".")[0]
 
 from optparse import OptionParser, OptionGroup
-from browser.cp_crawler import CPCrawler
-from browser.cp_engine import CPEngineBase, CPMenuItemXpath, DEFAULT_WAIT_TIMEOUT
+from perftrackerlib.browser.cp_crawler import CPCrawler
+from perftrackerlib.browser.cp_engine import CPEngineBase, CPMenuItemXpath, DEFAULT_WAIT_TIMEOUT
 
 
 class CPExtJsConsole(CPEngineBase):
