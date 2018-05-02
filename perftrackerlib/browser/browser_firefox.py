@@ -21,7 +21,7 @@ import sys
 
 from ..helpers.timeparser import TimeParser
 from ..helpers.largelogfile import LargeLogFile
-from ..helpers import timeutil
+from ..helpers import timehelpers
 
 from .utils import parse_url, get_val
 from .browser_webdriver import BrowserWebdriver, abort
@@ -124,7 +124,7 @@ class BrowserFirefox(BrowserWebdriver):
 
             self._last_seen_dt = dt
 
-            ts = timeutil.datetime_utc_to_timestamp(dt) * 1000
+            ts = timehelpers.dt2ts_utc(dt) * 1000
             thread = m.group(2)
             msg = m.group(3)
 

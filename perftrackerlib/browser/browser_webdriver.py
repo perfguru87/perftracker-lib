@@ -24,7 +24,6 @@ import shutil
 
 from ..helpers import timeparser
 from ..helpers import largelogfile
-from ..helpers import timeutil
 
 from .utils import parse_url, get_val
 from .browser_base import BrowserBase, BrowserExc, BrowserExcTimeout, BrowserExcNotImplemented
