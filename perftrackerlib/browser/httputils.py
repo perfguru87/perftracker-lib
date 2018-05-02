@@ -1,16 +1,34 @@
+#!/usr/bin/env python
+
+from __future__ import print_function
+
+# -*- coding: utf-8 -*-
+__author__ = "istillc0de@gmail.com"
+__copyright__ = "Copyright 2018, The PerfTracker project"
+__license__ = "MIT"
+
 import re
 import logging
-import httplib
-import urlparse
 import urllib
 import tempfile
 import os
+import sys
 
-from BaseHTTPServer import BaseHTTPRequestHandler
-from httplib import HTTPResponse
-from StringIO import StringIO
+if sys.version_info[0] < 3:
+    import urlparse
+    import httplib
+    from httplib import HTTPResponse
+    from BaseHTTPServer import BaseHTTPRequestHandler
+    from StringIO import StringIO
+    from HTMLParser import HTMLParser
+else:
+    import urllib.parse as urlparse
+    import http.client as httplib
+    from http.client import HTTPResponse
+    from http.server import BaseHTTPRequestHandler
+    from io import StringIO
+    from html.parser import HTMLParser
 
-from HTMLParser import HTMLParser
 
 reScriptLocation = re.compile(r"top\.location[\.href]*=\'(.*)\'")
 reFormButtonUrl = re.compile(r"doSubmit\(\'(.*)\'")
