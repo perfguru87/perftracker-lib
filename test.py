@@ -61,8 +61,10 @@ def coverage_one(lib, coverage_target):
 
 
 def test_all():
+    csopts = "--max-line-length=120 --ignore=E402"
+    test_one("pycodestyle %s *.py" % csopts)
     for lib, _ in libs:
-        test_one("pycodestyle --max-line-length=120 --ignore=E402 \"%s\"" % os.path.join(root, lib))
+        test_one("pycodestyle %s \"%s\"" % (csopts, os.path.join(root, lib)))
 
     for lib, coverage_target in libs:
         coverage_one(lib, coverage_target)
