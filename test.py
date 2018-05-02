@@ -34,8 +34,11 @@ def coverage_one(lib, coverage_target):
     # Use '# pragma: no cover' to exclude code
     # see http://coverage.readthedocs.io/en/coverage-4.2/excluding.html
 
+    modname = lib[0:len(lib)-3] if lib.endswith(".py") else lib
+    modname = modname.replace("/", ".")
+
     print ("coverage run %s ..." % lib, end=' ')
-    execute("coverage run \"%s\"" % os.path.join(root, lib))
+    execute("coverage run -m \"%s\"" % modname)
     _, out, ext = execute("coverage report | grep %s" % lib)
     try:
         coverage = out.split()[3]
