@@ -382,9 +382,6 @@ class CPCrawler:
 
     def init_opts(self, opts, urls, init_logging=True):
 
-        if init_logging:
-            self.init_logging(opts)
-
         if opts.urls_file:
             if not urls:
                 urls = []
@@ -410,6 +407,12 @@ class CPCrawler:
             self.urls = [(None, u) for u in gen_urls_from_index_file(urls)]
         else:
             self.urls = [(None, u) for u in urls]
+
+        shutil.rmtree(self.workdir, ignore_errors=True)
+        os.makedirs(self.workdir, mode=0o777)
+
+        if init_logging:
+            self.init_logging(opts)
 
     def init_logging(self, opts):
         if opts.log2file or opts.log_file:
@@ -447,9 +450,6 @@ class CPCrawler:
         if users and len(users) > 1 and len(users) > self.opts.real_browsers:
             raise CPCrawlerException("ERROR: number of users (%d) can't be higher than number of browsers (%d)"
                                      % (len(users), self.opts.real_browsers))
-
-        shutil.rmtree(self.workdir, ignore_errors=True)
-        os.makedirs(self.workdir, mode=0o777)
 
         if self.opts.real_browsers > 0:
             real_browsers = []
