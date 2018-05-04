@@ -246,7 +246,7 @@ class ptSuite:
         self.links[str(name)] = str(url)
 
     def addTest(self, test):
-        assert type(test) is ptTest
+        assert isinstance(test, ptTest)
         test.seq_num = len(self.tests) + 1
         self.tests.append(test)
 
