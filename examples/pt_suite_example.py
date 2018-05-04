@@ -34,10 +34,14 @@ def main(suite):
 
     g = "Latency tests"
 
-    suite.addTest(ptTest("Simple user login test", description="Login under a user, 1 parallel client, time includes navigation to home page",
-                         group=g, metrics="sec", scores=[0.6, 0.72, 0.65], deviations=[0.05, 0.12, 0.03], loops=100))
-    suite.addTest(ptTest("Simple admin login test", description="Login under admin, 1 parallel client",
-                         group=g, metrics="sec", scores=[0.8, 0.9, 1.2], deviations=[0.03, 0.09, 0.08], loops=100))
+    suite.addTest(ptTest("Simple user login test",
+                         description="Login under a user, 1 parallel client, time includes navigation to home page",
+                         group=g, metrics="sec", scores=[0.6, 0.72, 0.65 + random.randint(0, 10) / 10.0],
+                         deviations=[0.05, 0.12, 0.03], loops=100))
+    suite.addTest(ptTest("Simple admin login test",
+                         description="Login under admin, 1 parallel client",
+                         group=g, metrics="sec", scores=[0.8, 0.9, 1.2 + random.randint(0, 10) / 10.0],
+                         deviations=[0.03, 0.09, 0.08], loops=100))
 
     for p in range(1, 5 + random.randint(0, 2)):
         suite.addTest(ptTest("Home page response time", group=g, metrics="sec",
