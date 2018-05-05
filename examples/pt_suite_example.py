@@ -69,7 +69,7 @@ def main(suite):
     g = "Throughput tests"
 
     for p in range(1, 5 + random.randint(0, 2)):
-        suite.addTest(ptTest("Home page throughput time", group=g, metrics="pages/sec",
+        suite.addTest(ptTest("Home page throughput", group=g, metrics="pages/sec",
                              category="%d parallel clients" % (2 ** p),
                              scores=[10 + sqrt(p) + random.randint(0, 20) / 5]))
 
