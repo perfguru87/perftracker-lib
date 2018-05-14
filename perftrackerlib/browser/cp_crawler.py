@@ -335,7 +335,7 @@ class CPCrawler:
                     users.append(_u)
         return users
 
-    def add_options(self, op):
+    def add_options(self, op, passwd="password"):
         og = OptionGroup(op, "Control Panel crawler options")
         og.add_option("-s", "--session", type="string", help="session ID")
         og.add_option("-v", "--verbose", action="count", default=0,
@@ -355,7 +355,7 @@ class CPCrawler:
                       ",".join(['\'%s\'' % b.engine for b in BROWSERS]))
         og.add_option("-U", "--user", action="append", type="string", default=None,
                       help="try to login with given user name before the test (comma-separated list accepted)")
-        og.add_option("-P", "--password", type="string", default="1q2w3e", help="password, default %default")
+        og.add_option("-P", "--password", type="string", default=passwd, help="password, default %default")
         og.add_option("-r", "--requests", action="store_true",
                       help="print information about individual network requests")
         og.add_option("-m", "--menu-walk", action="store_true",
