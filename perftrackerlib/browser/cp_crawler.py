@@ -92,7 +92,6 @@ class CPBrowserRunner:
                                           log_path=self.browser_logfile,
                                           nav_timeout=self.opts.nav_timeout)
 
-
         if self.browser_id:
             sys.stdout = open(self.stdout_fname, 'w')
             sys.stderr = open(self.stderr_fname, 'w')

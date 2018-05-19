@@ -690,7 +690,8 @@ class PageStats:
                     total = reqs[b][url]['all']
                     if b not in errs:
                         errs[b] = []
-                    errs[b].append(["  " + url[len(common_prefix):], status, count, "%.1f" % (100 * count / (1.0 * total))])
+                    errs[b].append(["  " + url[len(common_prefix):], status, count,
+                                   "%.1f" % (100 * count / (1.0 * total))])
 
         print("  " + "\n  ".join(t.get_lines()))
 
