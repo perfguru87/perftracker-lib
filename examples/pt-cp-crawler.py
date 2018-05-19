@@ -14,7 +14,15 @@ basename = basename.split(".")[0]
 
 from optparse import OptionParser, OptionGroup
 from perftrackerlib.browser.cp_crawler import CPCrawler
-from perftrackerlib.browser.cp_engine import CPEngineBase, CPMenuItemXpath, DEFAULT_WAIT_TIMEOUT
+from perftrackerlib.browser.cp_engine import CPEngineBase, CPMenuItemXpath
+from distutils.version import LooseVersion
+
+from perftrackerlib import __version__ as perftrackerlib_version
+PERFTRACKERLIB_VERSION_REQUIRED = '0.0.4'
+if LooseVersion(perftrackerlib_version) < LooseVersion(PERFTRACKERLIB_VERSION_REQUIRED):
+    print("Error: perftrackerlib version >= %s must be installed, found %s" %
+          (PERFTRACKERLIB_VERSION_REQUIRED, perftrackerlib_version))
+    sys.exit(-2)
 
 
 class CPExtJsConsole(CPEngineBase):
@@ -42,7 +50,7 @@ class CPExtJsConsole(CPEngineBase):
     def skip_menu_item(self, link_el, title):
         return not link_el.is_displayed()
 
-    def menu_item_click(self, el, timeout_s=DEFAULT_WAIT_TIMEOUT, title=None):
+    def menu_item_click(self, el, timeout_s=None, title=None):
         # BackupConsole doesn't re-render the page, it means default
         # dom click wait callback will not work and we need own
 
