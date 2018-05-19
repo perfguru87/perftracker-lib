@@ -27,7 +27,7 @@ else:
     import http.client as httplib
 
 # time to wait for the incomplete requests
-DEFAULT_WAIT_TIMEOUT = 60.0
+DEFAULT_NAV_TIMEOUT = 60.0
 
 # time to wait for browser ajax activity (in seconds) to consider page load is fully complete
 DEFAULT_AJAX_THRESHOLD = 2.0
@@ -109,7 +109,8 @@ _browser_id = {}
 
 
 class BrowserBase:
-    def __init__(self, headless=True, resolution=(1440, 900), cleanup=True, telemetry_fname=None, log_path='auto'):
+    def __init__(self, headless=True, resolution=(1440, 900), cleanup=True, telemetry_fname=None,
+                 log_path='auto', nav_timeout=None):
         self.history = []
         self.page_stats = {}
 
@@ -119,6 +120,7 @@ class BrowserBase:
         self.driver = None
         self.display = None
         self.pid = None
+        self.nav_timeout = DEFAULT_NAV_TIMEOUT if nav_timeout is None else nav_timeout
 
         if log_path == 'auto':
             self.log_path = tempfile.NamedTemporaryFile(delete=cleanup).name
@@ -171,7 +173,7 @@ class BrowserBase:
     def _browser_navigate(self, location, cached=True, name=None):
         raise NotImplementedError
 
-    def _browser_wait(self, page, timeout=DEFAULT_WAIT_TIMEOUT):
+    def _browser_wait(self, page, timeout=None):
         """
         wait for navigation request completion
         """
@@ -289,7 +291,7 @@ class BrowserBase:
 
     # === navigation API === #
 
-    def navigate_to(self, location, timeout=DEFAULT_WAIT_TIMEOUT, cached=True, stats=True, name=None):
+    def navigate_to(self, location, timeout=None, cached=True, stats=True, name=None):
         """
         navigate to given url or page in cached/uncached mode
         """

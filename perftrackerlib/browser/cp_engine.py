@@ -17,7 +17,7 @@ import logging
 import time
 import re
 
-from .browser_base import BrowserBase, BrowserExc, BrowserExcTimeout, DEFAULT_WAIT_TIMEOUT
+from .browser_base import BrowserBase, BrowserExc, BrowserExcTimeout
 from .browser_python import BrowserPython
 from selenium.common.exceptions import ElementNotVisibleException
 from selenium.common.exceptions import NoSuchElementException
@@ -181,7 +181,7 @@ class CPEngineBase:
     def dom_click(self, el, title=None):
         self.browser.dom_click(el, name=title)
 
-    def menu_item_click(self, el, timeout_s=DEFAULT_WAIT_TIMEOUT, title=None):
+    def menu_item_click(self, el, timeout_s=None, title=None):
         def wait_callback(self, el, timeout_s, title):
             self.browser.dom_wait_element_stale(el, timeout_s=timeout_s, name=title)
 

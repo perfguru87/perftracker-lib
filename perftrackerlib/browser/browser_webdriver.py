@@ -28,7 +28,7 @@ from ..helpers import largelogfile
 from .utils import parse_url, get_val
 from .browser_base import BrowserBase, BrowserExc, BrowserExcTimeout, BrowserExcNotImplemented
 from .page import Page, PageEvent, PageRequest, PageTimeline
-from .browser_base import DEFAULT_WAIT_TIMEOUT, DEFAULT_AJAX_THRESHOLD
+from .browser_base import DEFAULT_AJAX_THRESHOLD
 
 
 if sys.version_info[0] < 3:
@@ -107,9 +107,12 @@ class BrowserWebdriver(BrowserBase):
         real_navigation = self._http_get(url)
         return Page(self, url, cached, name=name, real_navigation=real_navigation)
 
-    def _browser_wait(self, page, timeout=DEFAULT_WAIT_TIMEOUT):
+    def _browser_wait(self, page, timeout=None):
 
         self.log_info("_browser_wait()...")
+
+        if timeout is None:
+            timeout = self.nav_timeout
 
         start = time.time()
         while time.time() - start < timeout / 2:
@@ -146,7 +149,7 @@ class BrowserWebdriver(BrowserBase):
         page.complete(self)
 
     def _browser_warmup_page(self, location, name=None):
-        self.navigate_to(location, timeout=DEFAULT_WAIT_TIMEOUT, cached=False, stats=False, name=name)
+        self.navigate_to(location, cached=False, stats=False, name=name)
 
     def _browser_display_init(self, headless, resolution):
         if headless:
@@ -278,8 +281,11 @@ class BrowserWebdriver(BrowserBase):
 
     # === webdriver specific === #
 
-    def dom_wait_element_stale(self, el, timeout_s=DEFAULT_WAIT_TIMEOUT, name=None):
+    def dom_wait_element_stale(self, el, timeout_s=None, name=None):
         start_time = time.time()
+
+        if timeout_s is None:
+            timeout_s = self.nav_timeout
 
         # http://www.obeythetestinggoat.com/how-to-get-selenium-to-wait-for-page-load-after-a-click.html
         while time.time() < start_time + timeout_s:
@@ -295,8 +301,11 @@ class BrowserWebdriver(BrowserBase):
             self.log_error(msg)
             raise BrowserExcTimeout(msg)
 
-    def dom_click(self, el, timeout_s=DEFAULT_WAIT_TIMEOUT, name=None, wait_callback=None, wait_callback_obj=None):
+    def dom_click(self, el, timeout_s=None, name=None, wait_callback=None, wait_callback_obj=None):
         self.log_debug("dom_click(%s, %s)" % (str(el), str(name)))
+
+        if timeout_s is None:
+            timeout_s = self.nav_timeout
 
         p = Page(self, self.browser_get_current_url(), True, name=name, real_navigation=False)
         p.start()

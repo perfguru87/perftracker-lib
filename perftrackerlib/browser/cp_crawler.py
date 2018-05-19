@@ -37,7 +37,7 @@ from tempfile import gettempdir
 from optparse import OptionParser, OptionGroup
 from multiprocessing import Process, Queue
 
-from .browser_base import BrowserExc
+from .browser_base import BrowserExc, DEFAULT_NAV_TIMEOUT
 from .browser_python import BrowserPython
 from .browser_chrome import BrowserChrome
 from .browser_firefox import BrowserFirefox
@@ -89,7 +89,9 @@ class CPBrowserRunner:
 
         self.browser = self.browser_class(headless=not self.opts.view, cleanup=False,
                                           telemetry_fname=self.opts.telemetry,
-                                          log_path=self.browser_logfile)
+                                          log_path=self.browser_logfile,
+                                          nav_timeout=self.opts.nav_timeout)
+
 
         if self.browser_id:
             sys.stdout = open(self.stdout_fname, 'w')
@@ -335,7 +337,10 @@ class CPCrawler:
                     users.append(_u)
         return users
 
-    def add_options(self, op, passwd="password"):
+    def add_options(self, op, passwd="password", nav_timeout=None):
+        if nav_timeout is None:
+            nav_timeout = DEFAULT_NAV_TIMEOUT
+
         og = OptionGroup(op, "Control Panel crawler options")
         og.add_option("-s", "--session", type="string", help="session ID")
         og.add_option("-v", "--verbose", action="count", default=0,
@@ -350,6 +355,8 @@ class CPCrawler:
         og.add_option("-l", "--loops", type="int", default=7, help="number of iterations, default %default")
         og.add_option("-u", "--uncached", action="store_true", help="invalidate browser cache before each request")
         og.add_option("-d", "--delay", type="float", default=1, help="delay between GET requests, default %default sec")
+        og.add_option("-T", "--timeout", type="float", dest='nav_timeout', default=nav_timeout,
+                      help="navigation timeout, sec (default %default)")
         og.add_option("-b", "--browser", choices=[b.engine for b in BROWSERS], default=BROWSERS[0].engine,
                       help="browser to use: %s (default is '%%default')" %
                       ",".join(['\'%s\'' % b.engine for b in BROWSERS]))
