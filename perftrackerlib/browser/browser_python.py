@@ -26,7 +26,7 @@ if sys.version_info[0] < 3:
 else:
     from http.cookies import SimpleCookie
 
-from .browser_base import BrowserBase, DEFAULT_WAIT_TIMEOUT, BrowserExc
+from .browser_base import BrowserBase, BrowserExc
 from .page import Page, PageRequest, PageRequestsGroup, PageWithActions
 from .utils import parse_url, extract_cookies
 from ..helpers.httppool import HTTPPool
@@ -291,7 +291,7 @@ class BrowserPython(BrowserBase):
         page.complete(self)
         return page
 
-    def _browser_wait(self, page, timeout=DEFAULT_WAIT_TIMEOUT):
+    def _browser_wait(self, page, timeout=None):
         return
 
     def _browser_warmup_page(self, location, name=None):
