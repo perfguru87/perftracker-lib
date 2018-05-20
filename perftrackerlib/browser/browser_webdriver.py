@@ -28,7 +28,6 @@ from ..helpers import largelogfile
 from .utils import parse_url, get_val
 from .browser_base import BrowserBase, BrowserExc, BrowserExcTimeout, BrowserExcNotImplemented
 from .page import Page, PageEvent, PageRequest, PageTimeline
-from .browser_base import DEFAULT_AJAX_THRESHOLD
 
 
 if sys.version_info[0] < 3:
@@ -123,7 +122,7 @@ class BrowserWebdriver(BrowserBase):
             self.log_info("Waiting for loadEventEnd ... ")
 
         while time.time() - start < timeout:
-            time.sleep(DEFAULT_AJAX_THRESHOLD)
+            time.sleep(self.ajax_threshold)
 
             # hack. Execute something in browser context to flush logs...
             self.driver.execute_script("return window.performance.timing.loadEventEnd")

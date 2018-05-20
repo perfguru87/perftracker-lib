@@ -37,7 +37,7 @@ from tempfile import gettempdir
 from optparse import OptionParser, OptionGroup
 from multiprocessing import Process, Queue
 
-from .browser_base import BrowserExc, DEFAULT_NAV_TIMEOUT
+from .browser_base import BrowserExc, DEFAULT_NAV_TIMEOUT, DEFAULT_AJAX_THRESHOLD
 from .browser_python import BrowserPython
 from .browser_chrome import BrowserChrome
 from .browser_firefox import BrowserFirefox
@@ -90,7 +90,8 @@ class CPBrowserRunner:
         self.browser = self.browser_class(headless=not self.opts.view, cleanup=False,
                                           telemetry_fname=self.opts.telemetry,
                                           log_path=self.browser_logfile,
-                                          nav_timeout=self.opts.nav_timeout)
+                                          nav_timeout=self.opts.nav_timeout,
+                                          ajax_threshold=self.opts.ajax_threshold)
 
         if self.browser_id:
             sys.stdout = open(self.stdout_fname, 'w')
@@ -348,9 +349,8 @@ class CPCrawler:
                     users.append(_u)
         return users
 
-    def add_options(self, op, passwd="password", nav_timeout=None):
-        if nav_timeout is None:
-            nav_timeout = DEFAULT_NAV_TIMEOUT
+    def add_options(self, op, passwd="password", nav_timeout=DEFAULT_NAV_TIMEOUT,
+                    ajax_threshold=DEFAULT_AJAX_THRESHOLD):
 
         og = OptionGroup(op, "Control Panel crawler options")
         og.add_option("-s", "--session", type="string", help="session ID")
@@ -365,9 +365,7 @@ class CPCrawler:
         og.add_option("-w", "--wait", action="store_true", help="don\'t close the browser and wait till test is killed")
         og.add_option("-l", "--loops", type="int", default=7, help="number of iterations, default %default")
         og.add_option("-u", "--uncached", action="store_true", help="invalidate browser cache before each request")
-        og.add_option("-d", "--delay", type="float", default=1, help="delay between GET requests, default %default sec")
-        og.add_option("-T", "--timeout", type="float", dest='nav_timeout', default=nav_timeout,
-                      help="navigation timeout, sec (default %default)")
+
         og.add_option("-b", "--browser", choices=[b.engine for b in BROWSERS], default=BROWSERS[0].engine,
                       help="browser to use: %s (default is '%%default')" %
                       ",".join(['\'%s\'' % b.engine for b in BROWSERS]))
@@ -384,6 +382,14 @@ class CPCrawler:
         og.add_option("-i", "--dir-index", action="store_true",
                       help="treat given page as apache directory listing index page and parse URLs from there")
         op.add_option_group(og)
+
+        og = OptionGroup(op, "Page navigation timings")
+        og.add_option("-d", "--delay", type="float", default=1, help="delay between GET requests, default %default sec")
+        og.add_option("-T", "--nav-timeout", type="float", dest='nav_timeout', default=nav_timeout,
+                      help="navigation timeout, sec (default %default)")
+        og.add_option("-A", "--ajax-threshold", type="float", dest='ajax_threshold', default=ajax_threshold,
+                      help="page considered as complete if no ajax requests issued after the "
+                           "AJAX_THRESHOLD, sec (default %default)")
 
         og = OptionGroup(op, "Mass load mode")
         og.add_option("-X", "--real-browsers", type="int", default=0,
