@@ -12,9 +12,9 @@ sys.path.append(os.path.join(bindir, ".."))
 
 basename = basename.split(".")[0]
 
-from optparse import OptionParser, OptionGroup
+from optparse import OptionParser, OptionGroup, IndentedHelpFormatter
 from perftrackerlib.browser.cp_crawler import CPCrawler
-from perftrackerlib.browser.cp_engine import CPEngineBase, CPMenuItemXpath
+from perftrackerlib.browser.cp_engine import CPEngineBase, CPLoginForm, CPMenuItemXpath
 from distutils.version import LooseVersion
 
 from perftrackerlib import __version__ as perftrackerlib_version
@@ -25,32 +25,38 @@ if LooseVersion(perftrackerlib_version) < LooseVersion(PERFTRACKERLIB_VERSION_RE
     sys.exit(-2)
 
 
-class CPExtJsConsole(CPEngineBase):
-    type = "My ExtJS-based console"
+class CPWPAdminConsole(CPEngineBase):
+    type = "WordPress admin console"
     menu_dom_clicks = False
-    menu_xpaths = [[CPMenuItemXpath(0, None, "//div[contains(@class, 'navigation-btn')]", None)],
-                   [CPMenuItemXpath(1, None, "//div[contains(@class, 'navigation-sub-menu-item')]", None)]
+    menu_xpaths = [[CPMenuItemXpath(0, None,
+                                    "//a[contains(@class, 'menu-top')]",
+                                    "./div[contains(@class, 'wp-menu-name')]")],
+                   [CPMenuItemXpath(1, None, "//ul[contains(@class, 'wp-submenu')]/li/a", None)]
                    ]
 
+    login_form = CPLoginForm(sbmt_ids=[('input', 'wp-submit')])
+
     def _get_page_title(self):
-        divs = self.browser.driver.find_elements_by_xpath("//div[contains(@class, 'title-text')]")
+        divs = self.browser.driver.find_elements_by_xpath("//div[contains(@id, 'wpbody-content')]/div/h1")
         for div in divs:
             if not div.is_displayed():
                 continue
             return div.text
         return ''
 
-    def get_menu_item_title(self, title_el):
+    def cp_get_menu_item_title(self, title_el):
         text = title_el.get_attribute("innerHTML")
         return text.split("<")[0]
 
-    def get_current_url(self, url=None):
+    def cp_get_current_url(self, url=None):
         return self.browser.browser_get_current_url()
 
-    def skip_menu_item(self, link_el, title):
-        return not link_el.is_displayed()
+    def cp_skip_menu_item(self, link_el, title):
+        if title in ("Customize", "Header", "Editor"):
+            return True
+        return False
 
-    def menu_item_click(self, el, timeout_s=None, title=None):
+    def cp_menu_item_click(self, el, timeout_s=None, title=None):
         # BackupConsole doesn't re-render the page, it means default
         # dom click wait callback will not work and we need own
 
@@ -70,13 +76,15 @@ class CPExtJsConsole(CPEngineBase):
 def main():
     usage = "usage: %prog [options] URL [URL2 [URL3 ...]]"
 
+    description = "Example: -m -U admin -P pass https://demos1.softaculous.com/WordPress/wp-login.php"
+
     workdir = os.path.join(gettempdir(), "%s.%d" % (basename, os.getpid()))
     logfile = os.path.join(workdir, basename + ".log")
 
     cpc = CPCrawler(workdir=workdir, logfile=logfile)
 
-    op = OptionParser(usage=usage)
-    cpc.add_options(op)
+    op = OptionParser(usage=usage, description=description, formatter=IndentedHelpFormatter(width=120))
+    cpc.add_options(op, passwd='pass')
 
     opts, args = op.parse_args()
 
@@ -86,7 +94,7 @@ def main():
 
     cpc.init_opts(opts, args)
 
-    cpc.crawl([CPExtJsConsole])
+    cpc.crawl([CPWPAdminConsole])
 
 
 if __name__ == "__main__":
