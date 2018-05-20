@@ -18,7 +18,7 @@ from perftrackerlib.browser.cp_engine import CPEngineBase, CPLoginForm, CPMenuIt
 from distutils.version import LooseVersion
 
 from perftrackerlib import __version__ as perftrackerlib_version
-PERFTRACKERLIB_VERSION_REQUIRED = '0.0.4'
+PERFTRACKERLIB_VERSION_REQUIRED = '0.0.5'
 if LooseVersion(perftrackerlib_version) < LooseVersion(PERFTRACKERLIB_VERSION_REQUIRED):
     print("Error: perftrackerlib version >= %s must be installed, found %s" %
           (PERFTRACKERLIB_VERSION_REQUIRED, perftrackerlib_version))
