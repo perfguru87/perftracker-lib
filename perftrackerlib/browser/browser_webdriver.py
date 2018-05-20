@@ -383,57 +383,52 @@ class BrowserWebdriver(BrowserBase):
 
     # === some predefined scenarios === #
 
-    def _do_universal_login_single(self, url, user, password):
-        def get_list(d):
-            ret = [k for k in d]
-            for k in d:
-                if type(k) is tuple:
-                    ret.append((k[0].capitalize(), k[1].capitalize()))
-                else:
-                    ret.append(k.capitalize())
-            return ret
-
-        user_input_found = False
-        pass_input_found = False
-
-        for tag, name in get_list([("input", "user"), ("input", "username"), ("input", "login")]):
+    def _do_send_keys(self, title, keys, tag_names, tag_ids):
+        for tag, name in tag_names:
             try:
                 el = self.dom_find_element_by_name(name)
                 if el.tag_name != tag:
                     continue
-                if not self.dom_send_keys(el, user):
+                if not self.dom_send_keys(el, keys):
+                    self.log_error("Couldn't enter %s" % title)
                     return False
-                user_input_found = True
+                return True
             except BrowserExc as e:
                 pass
 
-        time.sleep(1)
-
-        if not user_input_found:
-            self.log_error("Couldn't find user name input field")
-            return False
-
-        for tag, name in get_list([("input", "pass"), ("input", "password"), ("input", "login_password")]):
+        for tag, id in tag_ids:
             try:
-                el = self.dom_find_element_by_name(name)
+                el = self.dom_find_element_by_id(id)
                 if el.tag_name != tag:
                     continue
-                if not self.dom_send_keys(el, password):
+                if not self.dom_send_keys(el, keys):
+                    self.log_error("Couldn't enter %s" % title)
                     return False
-                pass_input_found = True
+                return True
             except BrowserExc as e:
                 pass
 
-        if not pass_input_found:
-            self.log_error("Couldn't find user password input field")
+        self.log_error("Couldn't find %s input field" % title)
+        return False
+
+    def _do_login(self, url, user, password, login_form):
+        if not self._do_send_keys('user name', user, login_form.user_tags, login_form.user_ids):
             return False
 
         time.sleep(1)
-        for tag, name in get_list([("button", "login"), ("button", "login_submit")]):
+
+        if not self._do_send_keys('password', password, login_form.pass_tags, login_form.pass_ids):
+            return False
+
+        time.sleep(1)
+
+        submit_form_found = False
+        for tag, name in login_form.sbmt_tags:
             try:
                 el = self.dom_find_element_by_name(name)
                 if el.tag_name != tag:
                     continue
+                submit_form_found = True
                 self.dom_click(el, name=name)
 
                 try:
@@ -445,12 +440,12 @@ class BrowserWebdriver(BrowserBase):
             except BrowserExc as e:
                 pass
 
-        for tag, id in get_list([("button", "login"), ("button", "submit"),
-                                 ("button", "submit1"), ("button", "signin_button")]):
+        for tag, id in login_form.sbmt_ids:
             try:
                 el = self.dom_find_element_by_id(id)
                 if el.tag_name != tag:
                     continue
+                submit_form_found = True
                 self.dom_click(el, name=id)
 
                 try:
@@ -462,19 +457,22 @@ class BrowserWebdriver(BrowserBase):
             except BrowserExc as e:
                 pass
 
+        if not submit_form_found:
+            self.log_error("Couldn't find login submit form")
+
         self.log_info("Login failed")
         return False
 
-    def do_universal_login(self, url, user, password):
+    def do_login(self, url, user, password, login_form):
         self.log_info("Trying to login to '%s' under user %s" % (url, user))
         self.navigate_to(url, cached=None)
 
-        if self._do_universal_login_single(url, user, password):
+        if self._do_login(url, user, password, login_form):
             return True
 
         for frame in self.dom_find_frames():
             self.dom_switch_to_frame(frame)
-            if self._do_universal_login_single(url, user, password):
+            if self._do_login(url, user, password, login_form):
                 return True
 
         self.log_error("Login to '%s' under user '%s' has been failed" % (url, user))

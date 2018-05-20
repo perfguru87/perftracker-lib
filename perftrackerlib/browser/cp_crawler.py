@@ -107,7 +107,7 @@ class CPBrowserRunner:
     def _detect_cp_type(self):
         for cp in self.cp_engines:
             c = cp(self.browser)
-            if not c.init_context():
+            if not c.cp_init_context():
                 continue
             if not len(c.menu_xpaths):
                 continue
@@ -120,26 +120,36 @@ class CPBrowserRunner:
                 c.switch_to_default_content()
         return None
 
+    def _login(self, url, user, password):
+        for cp in self.cp_engines:
+            c = cp(self.browser)
+            if not c.cp_init_context():
+                continue
+            if c.cp_do_login(url, self.user, self.opts.password):
+                return True
+        logging.error("Login to %s under %s:%s failed" % (url, self.user, self.opts.password))
+        sys.exit(-1)
+
     def _run(self):
 
         self.browser.print_browser_info()
-
-        urls = copy.copy(self.urls)
 
         if self.user:
             if self.opts.uncached:
                 logging.error("Can't combine --user and --uncached mode")
                 return None
-            new_urls = []
-            for name, url in self.urls:
-                if len(new_urls) == 0:
-                    if not self.browser.do_universal_login(url, self.user, self.opts.password):
-                        logging.error("Login to %s under %s:%s failed" % (url, self.user, self.opts.password))
-                        sys.exit(-1)
-                    new_urls.append((name, self.browser.browser_get_current_url()))
-                else:
-                    new_urls.append((name, url))
-            urls = new_urls
+            if len(self.urls) == 0:
+                logging.error("Login URL is not specified")
+                return None
+
+            urls = []
+            self._login(self.urls[0][1], self.user, self.opts.password)
+            curr_url = self.browser.browser_get_current_url()
+            if curr_url not in self.urls:
+                urls.append(('Login landing page', curr_url))
+            urls += self.urls
+        else:
+            urls = copy.copy(self.urls)
 
         if self.opts.menu_walk:
             if not self.user:
@@ -150,9 +160,11 @@ class CPBrowserRunner:
             if not CP:
                 logging.error("Can't recognize Control Panel, aborting")
                 sys.exit(-1)
-            items = CP.do_menu_walk()
+            items = CP.cp_do_scan_menu()
             if items:
                 urls = items
+        else:
+            CP = CPEngineBase(self.browser)
 
         if self.opts.randomize_urls:
             import random
@@ -171,7 +183,7 @@ class CPBrowserRunner:
         print_title = True
         for name, url in urls:
             try:
-                page = self.browser.navigate_to(url, cached=cached, name=name)
+                page = CP.cp_do_navigate(url, cached=cached, name=name)
                 pages[url] = page
             except BrowserExc as e:
                 logging.error("Browser exception @ %s: %s\n%s" % (name, url, e))
@@ -239,7 +251,7 @@ class CPBrowserRunner:
 
                     time.sleep(self.opts.delay)
                     try:
-                        page = self.browser.navigate_to(url, cached=cached, name=name)
+                        page = CP.cp_do_navigate(url, cached=cached, name=name)
                         self.browser.page_stats[page.get_key()].print_page_timeline(page, title=str(n + 1))
                     except BrowserExc as e:
                         logging.error(e)

@@ -101,11 +101,46 @@ class CPMenuItem:
         return items
 
 
+class CPLoginForm:
+    def __init__(self, user_tags=None, user_ids=None, pass_tags=None, pass_ids=None, sbmt_tags=None, sbmt_ids=None):
+
+        def _capitalize_list(tags):
+            ret = [k for k in tags]
+            for k in tags:
+                if type(k) is tuple:
+                    ret.append((k[0].capitalize(), k[1].capitalize()))
+                else:
+                    ret.append(k.capitalize())
+            return ret
+
+        if user_tags is None:
+            user_tags = _capitalize_list([("input", "user"), ("input", "username"), ("input", "login")])
+        if user_ids is None:
+            user_ids = _capitalize_list([("input", "user_login")])
+        if pass_tags is None:
+            pass_tags = _capitalize_list([("input", "pass"), ("input", "password"), ("input", "login_password")])
+        if pass_ids is None:
+            pass_ids = _capitalize_list([("input", "user_pass")])
+        if sbmt_tags is None:
+            sbmt_tags = _capitalize_list([("button", "login"), ("button", "login_submit")])
+        if sbmt_ids is None:
+            sbmt_ids = _capitalize_list([("button", "login"), ("button", "submit")])
+
+        self.user_tags = user_tags
+        self.user_ids = user_ids
+        self.pass_tags = pass_tags
+        self.pass_ids = pass_ids
+        self.sbmt_tags = sbmt_tags
+        self.sbmt_ids = sbmt_ids
+
+
 class CPEngineBase:
     type = "A control panel"
     menu_url_clicks = True  # collect direct URL links to menu items
     menu_dom_clicks = True  # collect DOM (xpath) links to menu items
     menu_xpaths = []  # [[CPMenuItemXpath(0, ...), ...], [CPMenuItemXpath(1, ...), ...]]
+
+    login_form = CPLoginForm()
 
     def __init__(self, browser):
         self.browser = browser
@@ -117,16 +152,53 @@ class CPEngineBase:
                                menu_url_clicks=self.menu_url_clicks, menu_dom_clicks=self.menu_dom_clicks)
         self.current_frame = None
 
-    def init_context(self):
+    #
+    # Virtual methods, can be control panel specific
+    #
+
+    def cp_init_context(self):
         return True
 
-    def get_current_url(self, url=None):
+    def cp_get_current_url(self, url=None):
         if url and url.lower().find('javascript') < 0:
             return url
         return self.browser.browser_get_current_url()
 
-    def get_menu_item_title(self, title_el):
+    def cp_get_menu_item_title(self, title_el):
         return remove_html_tags(title_el.get_attribute("innerHTML"))
+
+    def cp_skip_menu_item(self, link_el, title):
+        return not link_el.is_displayed()
+
+    def cp_do_menu_item_click(self, el, timeout_s=None, title=None):
+        def wait_callback(self, el, timeout_s, title):
+            self.browser.dom_wait_element_stale(el, timeout_s=timeout_s, name=title)
+
+        self.browser.dom_click(el, timeout_s=timeout_s, name=title,
+                               wait_callback=wait_callback, wait_callback_obj=self)
+
+    def cp_do_scan_menu(self):
+        self.browser.print_stats_title("Control panel menu scanner...")
+        print("Control panel detected: '%s'" % self.type)  # ugly :-(
+        print("Searching for menu items...\n")  # ugly :-(
+        self.menu.link = self.cp_get_current_url()
+        self._populate_menu(self.menu)
+        self.log_info("Menu scan completed")
+        items = self.menu.get_items()
+        return [(i[1], i[2]) for i in sorted(items.values(), key=lambda x: x[0])]
+
+    def cp_do_navigate(self, location, timeout=None, cached=True, stats=True, name=None):
+        return self.browser.navigate_to(location, timeout=timeout, cached=cached, stats=stats, name=name)
+
+    def cp_do_login(self, url, user, password):
+        return self.browser.do_login(url, user, password, self.login_form)
+
+    def cp_do_logout(self):
+        return False
+
+    #
+    # Internal / private methods
+    #
 
     def get_current_xpath(self, link_el):
         if not link_el:
@@ -154,9 +226,6 @@ class CPEngineBase:
         xpath = "//%s" % xpath
         return xpath
 
-    def skip_menu_item(self, link_el, title):
-        return False
-
     def switch_to_frame(self, frame, verbose=True):
         if not frame:
             return None
@@ -180,13 +249,6 @@ class CPEngineBase:
 
     def dom_click(self, el, title=None):
         self.browser.dom_click(el, name=title)
-
-    def menu_item_click(self, el, timeout_s=None, title=None):
-        def wait_callback(self, el, timeout_s, title):
-            self.browser.dom_wait_element_stale(el, timeout_s=timeout_s, name=title)
-
-        self.browser.dom_click(el, timeout_s=timeout_s, name=title,
-                               wait_callback=wait_callback, wait_callback_obj=self)
 
     def _populate_menu(self, menu):
 
@@ -231,7 +293,7 @@ class CPEngineBase:
                 else:
                     title_el = link_el
 
-                title = self.get_menu_item_title(title_el)
+                title = self.cp_get_menu_item_title(title_el)
                 if menu.is_scanned(title):
                     self.log_debug("skipping menu item '%s', it was already scanned" % title)
                     continue
@@ -240,7 +302,7 @@ class CPEngineBase:
                     self.log_debug("skipping void link in '%s'" % title)
                     continue
 
-                if self.skip_menu_item(link_el, title):
+                if self.cp_skip_menu_item(link_el, title):
                     self.log_debug("skipping menu item '%s'" % title)
                     continue
 
@@ -248,7 +310,7 @@ class CPEngineBase:
 
                 self.log_info("clicking on the '%s' menu item, link %s" % (title, link))
                 try:
-                    self.menu_item_click(link_el, title=title)
+                    self.cp_do_menu_item_click(link_el, title=title)
                 except WebDriverException as e:
                     self.log_info(" ... skipping the '%s' menu item: %s" % (title, str(e)))
                 except ElementNotVisibleException:
@@ -259,7 +321,7 @@ class CPEngineBase:
                     self.log_warning("WARNING: can't wait for '%s' " % (title) + "menu click completion, skipping it")
                     continue
 
-                curr_url = self.get_current_url(link)
+                curr_url = self.cp_get_current_url(link)
                 self.browser.history.append(curr_url)
 
                 if menu.is_scanned(curr_url):
@@ -275,16 +337,6 @@ class CPEngineBase:
 
             if x.frame:
                 self.switch_to_default_content()
-
-    def do_menu_walk(self):
-        self.browser.print_stats_title("Control panel menu scanner...")
-        print("Control panel detected: '%s'" % self.type)  # ugly :-(
-        print("Searching for menu items...\n")  # ugly :-(
-        self.menu.link = self.get_current_url()
-        self._populate_menu(self.menu)
-        self.log_info("Menu scan completed")
-        items = self.menu.get_items()
-        return [(i[1], i[2]) for i in sorted(items.values(), key=lambda x: x[0])]
 
 
 ##############################################################################
