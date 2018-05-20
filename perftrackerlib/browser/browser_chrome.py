@@ -221,6 +221,9 @@ class BrowserChrome(BrowserWebdriver):
 
         return self.driver.service.process.pid
 
+    def navigation_reset(self):
+        self.navigate_to("chrome://version/")
+
 
 ##############################################################################
 # Autotests
