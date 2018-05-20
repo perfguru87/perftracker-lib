@@ -13,7 +13,7 @@ sys.path.append(os.path.join(bindir, ".."))
 basename = basename.split(".")[0]
 
 from optparse import OptionParser, OptionGroup, IndentedHelpFormatter
-from perftrackerlib.browser.cp_crawler import CPCrawler
+from perftrackerlib.browser.cp_crawler import CPCrawler, CPCrawlerException
 from perftrackerlib.browser.cp_engine import CPEngineBase, CPLoginForm, CPMenuItemXpath
 from distutils.version import LooseVersion
 
@@ -48,8 +48,17 @@ class CPWPAdminConsole(CPEngineBase):
         text = title_el.get_attribute("innerHTML")
         return text.split("<")[0]
 
-    def cp_get_current_url(self, url=None):
-        return self.browser.browser_get_current_url()
+    def cp_validate_current_page(self, url):
+        curr_url = self.cp_get_current_url()
+
+        if "reauth=1" in curr_url:
+            self.browser.log_error("WARNING: seems like WP control panel session is expired, trying to re-login")
+            time.sleep(2.0)
+            if not self.cp_do_login(url):
+                raise CPCrawlerException("Re-login failed")
+            return False
+
+        return True
 
     def cp_skip_menu_item(self, link_el, title):
         if title in ("Customize", "Header", "Editor"):
