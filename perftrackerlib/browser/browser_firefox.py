@@ -97,6 +97,9 @@ class BrowserFirefox(BrowserWebdriver):
         # geckodriver
         return self.driver.service.process.pid
 
+    def navigation_reset(self):
+        self.navigate_to("about:buildconfig")
+
     def _browser_get_events(self, page):
         thread2req = {}
         thread2resp = {}

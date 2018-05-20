@@ -332,6 +332,9 @@ class BrowserBase:
         self.log_info("Navigation completed: %s %s, dur %d ms" % (url, "CACHED" if cached else "UNCACHED", p.dur))
         return p
 
+    def navigation_reset(self):
+        pass
+
     # === printing facilities === #
 
     @staticmethod
