@@ -33,6 +33,7 @@ import time
 import re
 import shutil
 import copy
+import datetime
 from tempfile import gettempdir
 from optparse import OptionParser, OptionGroup
 from multiprocessing import Process, Queue
@@ -51,6 +52,28 @@ bindir, basename = os.path.split(sys.argv[0])
 basename = basename.split(".")[0]
 
 BROWSERS = (BrowserChrome, BrowserFirefox, BrowserPython)
+
+
+class CPLogFormatter(logging.Formatter):
+    LOG_LVL_MAP = {logging.CRITICAL: "CRI",
+                   logging.ERROR: "ERR",
+                   logging.WARNING: "WRN",
+                   logging.INFO: "INF",
+                   logging.DEBUG: "DBG",
+                   logging.NOTSET: "n/a"
+                   }
+
+    def __init__(self, *args, **kwargs):
+        return super(CPLogFormatter, self).__init__("%(message)s", *args, **kwargs)
+
+    def format(self, record):
+        if 'browser' in record.__dict__:
+            name = record.__dict__['browser']
+        else:
+            name = record.name[0:10].split(".")[0]
+        record.msg = '%s [%3s] %-10s - %s' % (datetime.datetime.now().strftime("%H:%M:%S.%f")[:-3],
+                                              self.LOG_LVL_MAP[record.levelno], name, record.msg)
+        return super(CPLogFormatter, self).format(record)
 
 
 class CPCrawlerException(RuntimeError):
@@ -83,6 +106,9 @@ class CPBrowserRunner:
         self._stdout_orig = sys.stdout
         self._stderr_orig = sys.stderr
 
+        if self.browser_id:
+            self.opts.log2file = True
+
     def init(self):
         shutil.rmtree(self.logdir, ignore_errors=True)
         os.makedirs(self.logdir, mode=0o777)
@@ -97,7 +123,6 @@ class CPBrowserRunner:
             sys.stdout = open(self.stdout_fname, 'w')
             sys.stderr = open(self.stderr_fname, 'w')
 
-            self.opts.log2file = True
             self.opts.telemetry = os.path.join(self.workdir, "telemetry.log")
 
     def fini(self):
@@ -289,7 +314,6 @@ class CPBrowserRunner:
 
     def run(self):
 
-        self.init()
         if self.opts.log2file or self.opts.log_file:
             logging.basicConfig(filename=self.crawler_logfile, level=logging.DEBUG)
             print("Redirecting %sverbose logs to %s" %
@@ -297,6 +321,12 @@ class CPBrowserRunner:
         else:
             level = logging.DEBUG if self.opts.verbose > 1 else logging.INFO if self.opts.verbose else logging.WARNING
             logging.basicConfig(level=level)
+
+        logger = logging.getLogger()
+        for handler in logger.root.handlers:
+            handler.setFormatter(CPLogFormatter())
+
+        self.init()
 
         if self.opts.session:
             self.browser.domain_set_session(self.urls[0], self.opts.session)
@@ -453,6 +483,10 @@ class CPCrawler:
             logging.basicConfig(level=level)
             if opts.verbose < 3:
                 selenium_logger.setLevel(logging.WARNING)
+
+        logger = logging.getLogger()
+        for handler in logger.root.handlers:
+            handler.setFormatter(CPLogFormatter())
 
     def crawl(self, cp_engines=None):
 

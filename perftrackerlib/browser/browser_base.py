@@ -109,6 +109,8 @@ _browser_id = {}
 
 
 class BrowserBase:
+    engine = 'basebrwsr'
+
     def __init__(self, headless=True, resolution=(1440, 900), cleanup=True, telemetry_fname=None,
                  log_path='auto', nav_timeout=DEFAULT_NAV_TIMEOUT, ajax_threshold=DEFAULT_AJAX_THRESHOLD):
         self.history = []
@@ -152,12 +154,9 @@ class BrowserBase:
 
     def _init_name(self):
         global _browser_id
-        name = self.__class__.__name__
-        if name not in _browser_id:
-            _browser_id[name] = 0
-
-        _name = "%s#%02d" % (name, _browser_id[name])
-        _browser_id[name] += 1
+        id = _browser_id.get(self.engine, 0)
+        _name = "%s#%02d" % (self.engine, id)
+        _browser_id[self.engine] = id + 1
         return _name
 
     def __del__(self):
@@ -240,16 +239,16 @@ class BrowserBase:
     # ==== logging === #
 
     def log_debug(self, msg):
-        logging.debug("%s: %s" % (self._name, msg))
+        logging.debug(msg, extra={'browser': self._name})
 
     def log_info(self, msg):
-        logging.info("%s: %s" % (self._name, msg))
+        logging.info(msg, extra={'browser': self._name})
 
     def log_warning(self, msg):
-        logging.warning("%s: %s" % (self._name, msg))
+        logging.warning(msg, extra={'browser': self._name})
 
     def log_error(self, msg):
-        logging.error("%s: %s" % (self._name, msg))
+        logging.error(msg, extra={'browser': self._name})
 
     def event_log(self, p):
         if not self.telemetry_log:
