@@ -252,7 +252,7 @@ class BrowserPythonNetlocData:
 
 
 class BrowserPython(BrowserBase):
-    engine = "pybrowser"
+    engine = "pybrwsr"
 
     def __init__(self, headless=True, validation=True, cleanup=True, max_connections=8,
                  js_redirects=False, log_path=None):
