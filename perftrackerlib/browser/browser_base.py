@@ -110,7 +110,7 @@ _browser_id = {}
 
 class BrowserBase:
     def __init__(self, headless=True, resolution=(1440, 900), cleanup=True, telemetry_fname=None,
-                 log_path='auto', nav_timeout=None):
+                 log_path='auto', nav_timeout=DEFAULT_NAV_TIMEOUT, ajax_threshold=DEFAULT_AJAX_THRESHOLD):
         self.history = []
         self.page_stats = {}
 
@@ -120,7 +120,8 @@ class BrowserBase:
         self.driver = None
         self.display = None
         self.pid = None
-        self.nav_timeout = DEFAULT_NAV_TIMEOUT if nav_timeout is None else nav_timeout
+        self.nav_timeout = nav_timeout
+        self.ajax_threshold = ajax_threshold
 
         if log_path == 'auto':
             self.log_path = tempfile.NamedTemporaryFile(delete=cleanup).name
