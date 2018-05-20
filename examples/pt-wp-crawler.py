@@ -84,7 +84,7 @@ def main():
     cpc = CPCrawler(workdir=workdir, logfile=logfile)
 
     op = OptionParser(usage=usage, description=description, formatter=IndentedHelpFormatter(width=120))
-    cpc.add_options(op, passwd='pass')
+    cpc.add_options(op, passwd='pass', ajax_threshold=0.5)
 
     opts, args = op.parse_args()
 
