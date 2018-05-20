@@ -373,7 +373,7 @@ class CPCrawler:
                       ",".join(['\'%s\'' % b.engine for b in BROWSERS]))
         og.add_option("-U", "--user", action="append", type="string", default=None,
                       help="try to login with given user name before the test (comma-separated list accepted)")
-        og.add_option("-P", "--password", type="string", default=passwd, help="password, default %default")
+        og.add_option("-P", "--password", type="string", default=passwd, help="password, default: %default")
         og.add_option("-r", "--requests", action="store_true",
                       help="print information about individual network requests")
         og.add_option("-m", "--menu-walk", action="store_true",
