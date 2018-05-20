@@ -107,7 +107,7 @@ class CPBrowserRunner:
 
     def _detect_cp_type(self):
         for cp in self.cp_engines:
-            c = cp(self.browser)
+            c = cp(self.browser, self.user, self.opts.password)
             if not c.cp_init_context():
                 continue
             if not len(c.menu_xpaths):
@@ -121,12 +121,12 @@ class CPBrowserRunner:
                 c.switch_to_default_content()
         return None
 
-    def _login(self, url, user, password):
+    def _login(self, url):
         for cp in self.cp_engines:
-            c = cp(self.browser)
+            c = cp(self.browser, self.user, self.opts.password)
             if not c.cp_init_context():
                 continue
-            if c.cp_do_login(url, self.user, self.opts.password):
+            if c.cp_do_login(url):
                 return True
         logging.error("Login to %s under %s:%s failed" % (url, self.user, self.opts.password))
         sys.exit(-1)
@@ -144,7 +144,7 @@ class CPBrowserRunner:
                 return None
 
             urls = []
-            self._login(self.urls[0][1], self.user, self.opts.password)
+            self._login(self.urls[0][1])
             curr_url = self.browser.browser_get_current_url()
             if curr_url not in self.urls:
                 urls.append(('Login landing page', curr_url))
@@ -185,6 +185,9 @@ class CPBrowserRunner:
         for name, url in urls:
             try:
                 page = CP.cp_do_navigate(url, cached=cached, name=name)
+                if not page:
+                    raise CPCrawlerException("Page navigation (%s) failed, aborting" % url)
+
                 pages[url] = page
             except BrowserExc as e:
                 logging.error("Browser exception @ %s: %s\n%s" % (name, url, e))
@@ -253,6 +256,9 @@ class CPBrowserRunner:
                     time.sleep(self.opts.delay)
                     try:
                         page = CP.cp_do_navigate(url, cached=cached, name=name)
+                        if not page:
+                            raise CPCrawlerException("Page navigation (%s) failed, aborting" % url)
+
                         self.browser.page_stats[page.get_key()].print_page_timeline(page, title=str(n + 1))
                     except BrowserExc as e:
                         logging.error(e)
@@ -341,8 +347,8 @@ class CPCrawler:
                 if "{" in _u:
                     m = re.search("(?P<pfx>.*?){(?P<from>\d+)-(?P<to>\d+)}(?P<sfx>.*)", _u)
                     if not m:
-                        raise Exception("can't parse users range from '%s',"
-                                        "valid pattern is 'prefix{from-to}suffix'" % _u)
+                        raise CPCrawlerException("can't parse users range from '%s',"
+                                                 "valid pattern is 'prefix{from-to}suffix'" % _u)
                     for n in range(int(m.group('from')), int(m.group('to')) + 1):
                         users.append(m.group('pfx') + str(n) + m.group('sfx'))
                 else:

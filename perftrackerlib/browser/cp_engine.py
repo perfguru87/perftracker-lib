@@ -142,7 +142,7 @@ class CPEngineBase:
 
     login_form = CPLoginForm()
 
-    def __init__(self, browser):
+    def __init__(self, browser, user=None, password=None):
         self.browser = browser
         self.log_error = browser.log_error
         self.log_warning = browser.log_warning
@@ -151,12 +151,17 @@ class CPEngineBase:
         self.menu = CPMenuItem(0, self.type, None, None, None,
                                menu_url_clicks=self.menu_url_clicks, menu_dom_clicks=self.menu_dom_clicks)
         self.current_frame = None
+        self.user = user
+        self.password = password
 
     #
     # Virtual methods, can be control panel specific
     #
 
     def cp_init_context(self):
+        return True
+
+    def cp_validate_current_page(self, url):
         return True
 
     def cp_get_current_url(self, url=None):
@@ -188,10 +193,17 @@ class CPEngineBase:
         return [(i[1], i[2]) for i in sorted(items.values(), key=lambda x: x[0])]
 
     def cp_do_navigate(self, location, timeout=None, cached=True, stats=True, name=None):
-        return self.browser.navigate_to(location, timeout=timeout, cached=cached, stats=stats, name=name)
+        for retry in range(0, 3):
+            page = self.browser.navigate_to(location, timeout=timeout, cached=cached, stats=stats, name=name)
+            if self.cp_validate_current_page(location):
+                return page
+            time.sleep(1.0)
 
-    def cp_do_login(self, url, user, password):
-        return self.browser.do_login(url, user, password, self.login_form)
+        self.log_error("Page url validation failed, aborting")
+        return None
+
+    def cp_do_login(self, url):
+        return self.browser.do_login(url, self.user, self.password, self.login_form)
 
     def cp_do_logout(self):
         return False
