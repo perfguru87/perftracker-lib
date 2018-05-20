@@ -65,9 +65,9 @@ class CPMenuItem:
         if link:
             print("  %s - %s" % (self.title, link))  # ugly :-(
 
-    def is_scanned(self, key):
-        if self.parent:
-            return self.parent.is_scanned(key)
+    def is_scanned(self, key, check_in_parent=False):
+        if check_in_parent and self.parent:
+            return self.parent.is_scanned(key, check_in_parent=check_in_parent)
         return key in self._scanned_menu_items
 
     def mark_as_scanned(self, key):
@@ -324,7 +324,7 @@ class CPEngineBase:
                 curr_url = self.cp_get_current_url(link)
                 self.browser.history.append(curr_url)
 
-                if menu.is_scanned(curr_url):
+                if menu.is_scanned(curr_url, check_in_parent=True):
                     self.log_debug("skipping menu item with url '%s', it was already scanned" % curr_url)
                     continue
 
