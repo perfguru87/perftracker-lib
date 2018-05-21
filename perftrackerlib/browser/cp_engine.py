@@ -124,7 +124,7 @@ class CPLoginForm:
         if sbmt_tags is None:
             sbmt_tags = _capitalize_list([("button", "login"), ("button", "login_submit")])
         if sbmt_ids is None:
-            sbmt_ids = _capitalize_list([("button", "login"), ("button", "submit")])
+            sbmt_ids = _capitalize_list([("button", "login"), ("button", "submit"), ("button", "signin_button")])
 
         self.user_tags = user_tags
         self.user_ids = user_ids
