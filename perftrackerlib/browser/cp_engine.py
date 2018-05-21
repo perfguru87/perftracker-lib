@@ -202,8 +202,8 @@ class CPEngineBase:
         self.log_error("Page url validation failed, aborting")
         return None
 
-    def cp_do_login(self, url):
-        return self.browser.do_login(url, self.user, self.password, self.login_form)
+    def cp_do_login(self, url, timeout_s=None):
+        return self.browser.do_login(url, self.user, self.password, self.login_form, timeout_s=timeout_s)
 
     def cp_do_logout(self):
         return False

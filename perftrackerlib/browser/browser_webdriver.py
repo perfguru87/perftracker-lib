@@ -410,7 +410,7 @@ class BrowserWebdriver(BrowserBase):
         self.log_error("Couldn't find %s input field" % title)
         return False
 
-    def _do_login(self, url, user, password, login_form):
+    def _do_login(self, url, user, password, login_form, timeout_s=None):
         if not self._do_send_keys('user name', user, login_form.user_tags, login_form.user_ids):
             return False
 
@@ -428,7 +428,7 @@ class BrowserWebdriver(BrowserBase):
                 if el.tag_name != tag:
                     continue
                 submit_form_found = True
-                self.dom_click(el, name=name)
+                self.dom_click(el, name=name, timeout_s=timeout_s)
 
                 try:
                     el = self.dom_find_element_by_name(name)
@@ -445,7 +445,7 @@ class BrowserWebdriver(BrowserBase):
                 if el.tag_name != tag:
                     continue
                 submit_form_found = True
-                self.dom_click(el, name=id)
+                self.dom_click(el, name=id, timeout_s=timeout_s)
 
                 try:
                     el = self.dom_find_element_by_id(id)
@@ -462,16 +462,16 @@ class BrowserWebdriver(BrowserBase):
         self.log_info("Login failed")
         return False
 
-    def do_login(self, url, user, password, login_form):
+    def do_login(self, url, user, password, login_form, timeout_s=None):
         self.log_info("Trying to login to '%s' under user %s" % (url, user))
         self.navigate_to(url, cached=None)
 
-        if self._do_login(url, user, password, login_form):
+        if self._do_login(url, user, password, login_form, timeout_s=timeout_s):
             return True
 
         for frame in self.dom_find_frames():
             self.dom_switch_to_frame(frame)
-            if self._do_login(url, user, password, login_form):
+            if self._do_login(url, user, password, login_form, timeout_s=timeout_s):
                 return True
 
         self.log_error("Login to '%s' under user '%s' has been failed" % (url, user))
