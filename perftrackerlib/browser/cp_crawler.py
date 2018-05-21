@@ -146,12 +146,12 @@ class CPBrowserRunner:
                 c.switch_to_default_content()
         return None
 
-    def _login(self, url):
+    def _login(self, url, wait_completion=True):
         for cp in self.cp_engines:
             c = cp(self.browser, self.user, self.opts.password)
             if not c.cp_init_context():
                 continue
-            if c.cp_do_login(url):
+            if c.cp_do_login(url, timeout_s=None if wait_completion else 2.0):
                 return True
         logging.error("Login to %s under %s:%s failed" % (url, self.user, self.opts.password))
         sys.exit(-1)
@@ -159,6 +159,10 @@ class CPBrowserRunner:
     def _run(self):
 
         self.browser.print_browser_info()
+
+        urls = copy.copy(self.urls)
+
+        CP = None
 
         if self.user:
             if self.opts.uncached:
@@ -168,28 +172,30 @@ class CPBrowserRunner:
                 logging.error("Login URL is not specified")
                 return None
 
-            urls = []
-            self._login(self.urls[0][1])
+            self._login(urls[0][1], wait_completion=self.opts.login_wait)
+
+            CP = self._detect_cp_type()
+
             curr_url = self.browser.browser_get_current_url()
-            if curr_url not in self.urls:
-                urls.append(('Login landing page', curr_url))
-            urls += self.urls
-        else:
-            urls = copy.copy(self.urls)
+            if curr_url not in [u[1] for u in urls]:
+                urls = [('Login landing page', curr_url)] + urls
 
         if self.opts.menu_walk:
             if not self.user:
                 name, url = urls[0]
                 page = self.browser.navigate_to(url, name=name)
 
-            CP = self._detect_cp_type()
+            if CP is None:
+                CP = self._detect_cp_type()
+
             if not CP:
                 logging.error("Can't recognize Control Panel, aborting")
                 sys.exit(-1)
             items = CP.cp_do_scan_menu()
             if items:
                 urls = items
-        else:
+
+        if CP is None:
             CP = CPEngineBase(self.browser)
 
         if self.opts.randomize_urls:
@@ -389,7 +395,6 @@ class CPCrawler:
                     ajax_threshold=DEFAULT_AJAX_THRESHOLD):
 
         og = OptionGroup(op, "Control Panel crawler options")
-        og.add_option("-s", "--session", type="string", help="session ID")
         og.add_option("-v", "--verbose", action="count", default=0,
                       help="run in verbose mode, use -vvv for max verbosity")
         og.add_option("", "--log-file", type="string", help="log into the file (default %s)" % self.logfile)
@@ -400,23 +405,32 @@ class CPCrawler:
                       help="log pages to given file (append only, concurrent-process-safe)")
         og.add_option("-w", "--wait", action="store_true", help="don\'t close the browser and wait till test is killed")
         og.add_option("-l", "--loops", type="int", default=7, help="number of iterations, default %default")
-        og.add_option("-u", "--uncached", action="store_true", help="invalidate browser cache before each request")
 
         og.add_option("-b", "--browser", choices=[b.engine for b in BROWSERS], default=BROWSERS[0].engine,
                       help="browser to use: %s (default is '%%default')" %
                       ",".join(['\'%s\'' % b.engine for b in BROWSERS]))
+        og.add_option("-r", "--requests", action="store_true",
+                      help="print information about individual network requests")
+        og.add_option("-o", "--perf-atomic-format", action="store_true", help="perf-atomic output format")
+        op.add_option_group(og)
+
+        og = OptionGroup(op, "Authentication options")
         og.add_option("-U", "--user", action="append", type="string", default=None,
                       help="try to login with given user name before the test (comma-separated list accepted)")
         og.add_option("-P", "--password", type="string", default=passwd, help="password, default: %default")
-        og.add_option("-r", "--requests", action="store_true",
-                      help="print information about individual network requests")
+        op.add_option_group(og)
+
+        og = OptionGroup(op, "Navigation options")
         og.add_option("-m", "--menu-walk", action="store_true",
                       help="search for menu items and click on every menu item")
+        og.add_option("", "--dont-wait-login-landing", action="store_false", dest="login_wait", default=True,
+                      help="do not wait for full login landing page load")
         og.add_option("-R", "--randomize-urls", action="store_true", help="randomize menu items sequence")
-        og.add_option("-o", "--perf-atomic-format", action="store_true", help="perf-atomic output format")
         og.add_option("-f", "--urls-file", type='string', help="get URLs from file (instead of command line)")
         og.add_option("-i", "--dir-index", action="store_true",
                       help="treat given page as apache directory listing index page and parse URLs from there")
+        og.add_option("-u", "--uncached", action="store_true", help="invalidate browser cache before each request")
+        og.add_option("-s", "--session", type="string", help="session ID")
         op.add_option_group(og)
 
         og = OptionGroup(op, "Page navigation timings")
