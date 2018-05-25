@@ -299,7 +299,7 @@ class BrowserBase:
 
         scheme = url.split(":")[0]
 
-        if scheme not in ("http", "https", "file"):
+        if scheme not in ("http", "https", "file", "about", "chrome"):
             url = "http://%s" % url
 
         if isinstance(location, Page):
