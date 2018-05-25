@@ -172,13 +172,14 @@ class CPBrowserRunner:
                 logging.error("Login URL is not specified")
                 return None
 
-            self._login(urls[0][1], wait_completion=self.opts.login_wait)
+            self._login(urls[0][1], wait_completion=self.opts.login_wait and self.opts.add_login_landing)
 
             CP = self._detect_cp_type()
 
-            curr_url = self.browser.browser_get_current_url()
-            if curr_url not in [u[1] for u in urls]:
-                urls = [('Login landing page', curr_url)] + urls
+            if self.opts.add_login_landing:
+                curr_url = self.browser.browser_get_current_url()
+                if curr_url not in [u[1] for u in urls]:
+                    urls = [('Login landing page', curr_url)] + urls
 
         if self.opts.menu_walk:
             if not self.user:
@@ -423,6 +424,8 @@ class CPCrawler:
         og = OptionGroup(op, "Navigation options")
         og.add_option("-m", "--menu-walk", action="store_true",
                       help="search for menu items and click on every menu item")
+        og.add_option("-L", "--skip-login-landing-url", action="store_false", dest="add_login_landing", default=True,
+                     help="skip login landing page URL")
         og.add_option("", "--dont-wait-login-landing", action="store_false", dest="login_wait", default=True,
                       help="do not wait for full login landing page load")
         og.add_option("-R", "--randomize-urls", action="store_true", help="randomize menu items sequence")
