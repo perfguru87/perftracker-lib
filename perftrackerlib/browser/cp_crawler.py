@@ -443,6 +443,7 @@ class CPCrawler:
         og.add_option("-A", "--ajax-threshold", type="float", dest='ajax_threshold', default=ajax_threshold,
                       help="page considered as complete if no ajax requests issued after the "
                            "AJAX_THRESHOLD, sec (default %default)")
+        op.add_option_group(og)
 
         og = OptionGroup(op, "Mass load mode")
         og.add_option("-X", "--real-browsers", type="int", default=0,
