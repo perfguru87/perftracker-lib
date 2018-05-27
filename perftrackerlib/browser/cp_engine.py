@@ -291,7 +291,7 @@ class CPEngineBase:
                 i += 1
 
                 if not link:
-                    link = link_el.get_attribute('innerHTML')
+                    link = link_el.get_attribute('innerHTML').strip()
 
                 self.log_info("found menu item element: '%s'" % link)
 
