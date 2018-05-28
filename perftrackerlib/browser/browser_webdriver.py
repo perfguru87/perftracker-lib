@@ -115,7 +115,7 @@ class BrowserWebdriver(BrowserBase):
 
         start = time.time()
         while time.time() - start < timeout / 2:
-            time.sleep(0.5)
+            time.sleep(0.2)
             if self.driver.execute_script("return window.performance.timing.loadEventEnd"):
                 break
             # onload event has not been processed yet, so need to wait and retry
@@ -293,7 +293,7 @@ class BrowserWebdriver(BrowserBase):
                 pass
             except StaleElementReferenceException:
                 break
-            time.sleep(0.2)
+            time.sleep(0.1)
 
         if time.time() > start_time + timeout_s:
             msg = "DOM element '%s' click() timeout: %.1fs" % (name, time.time() - start_time)
@@ -328,7 +328,7 @@ class BrowserWebdriver(BrowserBase):
         self._browser_wait(p, timeout=timeout_s)
         p.url = self.browser_get_current_url()
 
-        time.sleep(0.5)
+        time.sleep(0.2)
 
     def dom_find_element_by_id(self, id):
         try:
