@@ -54,6 +54,8 @@ basename = basename.split(".")[0]
 BROWSERS = (BrowserChrome, BrowserFirefox, BrowserPython)
 
 OPT_DELAY_BETWEEN_CLICK_SEC = 1.0
+OPT_DEFAULT_AJAX_THRESHOLD = DEFAULT_AJAX_THRESHOLD
+OPT_DEFAULT_NAV_TIMEOUT = DEFAULT_NAV_TIMEOUT
 
 class CPLogFormatter(logging.Formatter):
     LOG_LVL_MAP = {logging.CRITICAL: "CRI",
@@ -395,8 +397,10 @@ class CPCrawler:
                     users.append(_u)
         return users
 
-    def add_options(self, op, passwd="password", nav_timeout=DEFAULT_NAV_TIMEOUT,
-                    ajax_threshold=DEFAULT_AJAX_THRESHOLD):
+    def add_options(self, op, passwd="password",
+                    nav_timeout=OPT_DEFAULT_NAV_TIMEOUT,
+                    ajax_threshold=OPT_DEFAULT_AJAX_THRESHOLD,
+                    delay_between_click_sec=OPT_DELAY_BETWEEN_CLICK_SEC):
 
         og = OptionGroup(op, "Control Panel crawler options")
         og.add_option("-v", "--verbose", action="count", default=0,
@@ -440,7 +444,7 @@ class CPCrawler:
         op.add_option_group(og)
 
         og = OptionGroup(op, "Page navigation timings")
-        og.add_option("-d", "--delay", type="float", default=OPT_DELAY_BETWEEN_CLICK_SEC,
+        og.add_option("-d", "--delay", type="float", default=delay_between_click_sec,
                       help="delay between GET requests, default %default sec")
         og.add_option("-T", "--nav-timeout", type="float", dest='nav_timeout', default=nav_timeout,
                       help="navigation timeout, sec (default %default)")
