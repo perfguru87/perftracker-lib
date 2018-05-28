@@ -75,6 +75,7 @@ class CPMenuItem:
         while p.parent:
             p = p.parent
         p._scanned_menu_items.add(key)
+        self._scanned_menu_items.add(key)
 
     def add_child(self, title, link, xpath, menu_xpath):
         ch = CPMenuItem(self.level + 1, title, link, xpath, self,
