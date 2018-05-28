@@ -53,6 +53,7 @@ basename = basename.split(".")[0]
 
 BROWSERS = (BrowserChrome, BrowserFirefox, BrowserPython)
 
+OPT_DELAY_BETWEEN_CLICK_SEC = 1.0
 
 class CPLogFormatter(logging.Formatter):
     LOG_LVL_MAP = {logging.CRITICAL: "CRI",
@@ -198,6 +199,8 @@ class CPBrowserRunner:
 
         if CP is None:
             CP = CPEngineBase(self.browser)
+
+        CP.cp_handle_opts(self.opts)
 
         if self.opts.randomize_urls:
             import random
@@ -437,7 +440,8 @@ class CPCrawler:
         op.add_option_group(og)
 
         og = OptionGroup(op, "Page navigation timings")
-        og.add_option("-d", "--delay", type="float", default=1, help="delay between GET requests, default %default sec")
+        og.add_option("-d", "--delay", type="float", default=OPT_DELAY_BETWEEN_CLICK_SEC,
+                      help="delay between GET requests, default %default sec")
         og.add_option("-T", "--nav-timeout", type="float", dest='nav_timeout', default=nav_timeout,
                       help="navigation timeout, sec (default %default)")
         og.add_option("-A", "--ajax-threshold", type="float", dest='ajax_threshold', default=ajax_threshold,
