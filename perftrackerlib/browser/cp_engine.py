@@ -162,6 +162,9 @@ class CPEngineBase:
     def cp_init_context(self):
         return True
 
+    def cp_handle_opts(self, opts):
+        return
+
     def cp_validate_current_page(self, url):
         return True
 
