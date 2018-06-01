@@ -38,6 +38,7 @@ from tempfile import gettempdir
 from optparse import OptionParser, OptionGroup
 from multiprocessing import Process, Queue
 
+from perftrackerlib.client import ptSuite, ptTest
 from .browser_base import BrowserExc, DEFAULT_NAV_TIMEOUT, DEFAULT_AJAX_THRESHOLD
 from .browser_python import BrowserPython
 from .browser_chrome import BrowserChrome
@@ -56,6 +57,7 @@ BROWSERS = (BrowserChrome, BrowserFirefox, BrowserPython)
 OPT_DELAY_BETWEEN_CLICK_SEC = 1.0
 OPT_DEFAULT_AJAX_THRESHOLD = DEFAULT_AJAX_THRESHOLD
 OPT_DEFAULT_NAV_TIMEOUT = DEFAULT_NAV_TIMEOUT
+
 
 class CPLogFormatter(logging.Formatter):
     LOG_LVL_MAP = {logging.CRITICAL: "CRI",
@@ -84,7 +86,7 @@ class CPCrawlerException(RuntimeError):
 
 
 class CPBrowserRunner:
-    def __init__(self, cp_engines, opts, urls, users, browser_id, logfile, workdir):
+    def __init__(self, cp_engines, opts, urls, users, browser_id, logfile, workdir, pt_suite):
         self.cp_engines = cp_engines
         self.opts = opts
         self.urls = urls
@@ -92,6 +94,7 @@ class CPBrowserRunner:
         self.workdir = workdir
         self.page_stats = []
         self.user = users[(self.browser_id - 1) % len(users)] if users else None
+        self.pt_suite = pt_suite
 
         self.browser_class = BROWSERS[0]
         for b in BROWSERS:
@@ -159,6 +162,27 @@ class CPBrowserRunner:
         logging.error("Login to %s under %s:%s failed" % (url, self.user, self.opts.password))
         sys.exit(-1)
 
+    def _pt_update_results(self, page):
+        if self.opts.pt_project is None or page is None:
+            return
+
+        basename = page.get_full_name()
+        if basename is None:
+            return
+
+        for n, m, f, lb, g in (("Rendering", "msec", "dur", True, "Page rendering"),
+                               ("Footprint", "KB", "ram_usage_kb", False, "Browser memory footprint")):
+            name = "%s: %s" % (n, basename)
+            group = "%s (%s)" % (g, m)
+            test = self.pt_suite.getTest(name, group=group)
+            if test is None:
+                test = ptTest(name, less_better=lb, group=group, metrics=m)
+                self.pt_suite.addTest(test)
+
+            test.scores.append(page.__dict__[f])
+
+        self.pt_suite.upload()
+
     def _run(self):
 
         self.browser.print_browser_info()
@@ -222,6 +246,7 @@ class CPBrowserRunner:
         for name, url in urls:
             try:
                 page = CP.cp_do_navigate(url, cached=cached, name=name)
+                self._pt_update_results(page)
                 if not page:
                     raise CPCrawlerException("Page navigation (%s) failed, aborting" % url)
 
@@ -293,6 +318,7 @@ class CPBrowserRunner:
                     time.sleep(self.opts.delay)
                     try:
                         page = CP.cp_do_navigate(url, cached=cached, name=name)
+                        self._pt_update_results(page)
                         if not page:
                             raise CPCrawlerException("Page navigation (%s) failed, aborting" % url)
 
@@ -372,12 +398,14 @@ class CPBrowserRunner:
 
 
 class CPCrawler:
-    def __init__(self, workdir=None, logfile=None):
+    def __init__(self, workdir=None, logfile=None, pt_job_title=None):
 
         self.workdir = workdir if workdir else os.path.join(gettempdir(), "%s.%d" % (basename, os.getpid()))
         self.logfile = logfile
         self.opts = None
         self.urls = []
+
+        self.pt_suite = ptSuite("UI crawler job" if pt_job_title is None else pt_job_title)
 
     def _gen_users(self, users_ar):
         if not users_ar:
@@ -400,7 +428,8 @@ class CPCrawler:
     def add_options(self, op, passwd="password",
                     nav_timeout=OPT_DEFAULT_NAV_TIMEOUT,
                     ajax_threshold=OPT_DEFAULT_AJAX_THRESHOLD,
-                    delay_between_click_sec=OPT_DELAY_BETWEEN_CLICK_SEC):
+                    delay_between_click_sec=OPT_DELAY_BETWEEN_CLICK_SEC,
+                    pt_url=None):
 
         og = OptionGroup(op, "Control Panel crawler options")
         og.add_option("-v", "--verbose", action="count", default=0,
@@ -432,7 +461,7 @@ class CPCrawler:
         og.add_option("-m", "--menu-walk", action="store_true",
                       help="search for menu items and click on every menu item")
         og.add_option("-L", "--skip-login-landing-url", action="store_false", dest="add_login_landing", default=True,
-                     help="skip login landing page URL")
+                      help="skip login landing page URL")
         og.add_option("", "--dont-wait-login-landing", action="store_false", dest="login_wait", default=True,
                       help="do not wait for full login landing page load")
         og.add_option("-R", "--randomize-urls", action="store_true", help="randomize menu items sequence")
@@ -465,6 +494,8 @@ class CPCrawler:
         og.add_option("-W", "--work-dir", type="string",
                       help="work directory with the tool logs and final HTML report, default %default")
         op.add_option_group(og)
+
+        self.pt_suite.addOptions(op, pt_url=pt_url)
 
     def init_opts(self, opts, urls, init_logging=True):
 
@@ -500,6 +531,8 @@ class CPCrawler:
         if init_logging:
             self.init_logging(opts)
 
+        self.pt_suite.handleOptions(opts)
+
     def init_logging(self, opts):
         if opts.log2file or opts.log_file:
             logging.basicConfig(filename=self.logfile, level=logging.DEBUG)
@@ -516,8 +549,8 @@ class CPCrawler:
 
     def crawl(self, cp_engines=None):
 
-        def _browser_launch(queue, cp_engines, opts, urls, users, browser_id, logfile, workdir):
-            cpbr = CPBrowserRunner(cp_engines, opts, urls, users, browser_id, logfile, workdir)
+        def _browser_launch(queue, cp_engines, opts, urls, users, browser_id, logfile, workdir, pt_suite):
+            cpbr = CPBrowserRunner(cp_engines, opts, urls, users, browser_id, logfile, workdir, pt_suite)
             if browser_id:
                 try:
                     cpbr.run()
@@ -548,7 +581,7 @@ class CPCrawler:
             for i in range(1, self.opts.real_browsers + 1):
                 cpbr_objs[i] = Queue()
                 b = Process(target=_browser_launch, args=(cpbr_objs[i], cp_engines, self.opts, self.urls, users, i,
-                                                          self.logfile, self.workdir))
+                                                          self.logfile, self.workdir, self.pt_suite))
                 b.start()
                 real_browsers.append(b)
                 time.sleep(self.opts.instances_delay)
@@ -605,7 +638,8 @@ class CPCrawler:
                 PageStats.print_summary(page_stats, title='Pages summary')
 
         else:
-            cpbr = _browser_launch(None, cp_engines, self.opts, self.urls, users, 0, self.logfile, self.workdir)
+            cpbr = _browser_launch(None, cp_engines, self.opts, self.urls, users, 0, self.logfile,
+                                   self.workdir, self.pt_suite)
             page_stats = cpbr.page_stats
 
         return page_stats
