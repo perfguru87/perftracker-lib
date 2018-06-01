@@ -20,6 +20,7 @@ import os
 import threading
 import traceback
 import datetime
+import platform
 
 if sys.version_info[0] < 3:
     import httplib
@@ -193,6 +194,12 @@ class BrowserBase:
 
     def browser_get_name(self):
         raise NotImplementedError
+
+    def browser_get_version(self):
+        raise NotImplementedError
+
+    def browser_get_platform(self):
+        raise platform.platform()
 
     def _browser_get_rss_kb(self):
         return 0
