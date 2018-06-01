@@ -176,7 +176,7 @@ class CPBrowserRunner:
             group = "%s (%s)" % (g, m)
             test = self.pt_suite.getTest(name, group=group)
             if test is None:
-                test = ptTest(name, less_better=lb, group=group, metrics=m, links={'url': page.url})
+                test = ptTest(name, less_better=lb, group=group, metrics=m, description=page.url)
                 self.pt_suite.addTest(test)
 
             test.add_score(page.__dict__[f])
