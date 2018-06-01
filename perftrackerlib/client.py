@@ -312,7 +312,7 @@ class ptSuite:
 
         try:
             response = requests.post(url, data=json_data, headers=headers)
-        except requests.exceptions.ConnectionError, exc:
+        except requests.exceptions.ConnectionError as exc:
             logging.error("Connection error: %s" % str(exc))
             return False
 
@@ -323,7 +323,9 @@ class ptSuite:
         logging.info("job json uploaded to %s: status %d, %s" % (url, response.status_code, response.text))
         return True
 
-    def addOptions(self, option_parser, pt_url="http://127.0.0.1:9000"):
+    def addOptions(self, option_parser, pt_url=None):
+        if pt_url is None:
+            pt_url = "http://127.0.0.1:9000"
         pt_url = pt_url.rstrip('/')
         g = optparse.OptionGroup(option_parser, "PerfTracker options")
         g.add_option("--pt-to-file", type="str", help="Dump the job results json to a file instead of upload")
