@@ -45,7 +45,7 @@ def coverage_one(lib, coverage_target):
     execute("coverage run -m \"%s\"" % lib2mod(lib))
     _, out, ext = execute("coverage report | grep %s" % lib)
     try:
-        coverage = out.split()[3]
+        coverage = out.split()[3].decode("utf-8")
         if not coverage.endswith("%"):
             raise RuntimeError("can't parse: %s" % coverage)
         coverage = int(coverage[:-1])
