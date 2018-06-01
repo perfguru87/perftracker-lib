@@ -168,6 +168,12 @@ class CPEngineBase:
     def cp_validate_current_page(self, url):
         return True
 
+    def cp_get_product_version(self):
+        return None
+
+    def cp_get_product_name(self):
+        return None
+
     def cp_get_current_url(self, url=None):
         if url and url.lower().find('javascript') < 0:
             return url
