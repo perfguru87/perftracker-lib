@@ -168,8 +168,15 @@ class BrowserWebdriver(BrowserBase):
 
     def browser_get_name(self):
         c = self.driver.capabilities
-        # return "%s %s" % (c['browserName'], c['version'])
         return c['browserName']
+
+    def browser_get_version(self):
+        c = self.driver.capabilities
+        return self._get_val(c, ['version', 'browserVersion'])
+
+    def browser_get_platform(self):
+        c = self.driver.capabilities
+        return self._get_val(c, ['platform', 'platformName'])
 
     def browser_get_screenshot_as_file(self, filename):
         self.driver.get_screenshot_as_file(filename)
@@ -261,8 +268,8 @@ class BrowserWebdriver(BrowserBase):
     def print_browser_info(self):
         c = self.driver.capabilities
         self.print_stats_title("Browser summary")
-        print("  - platform: %s" % self._get_val(c, ['platform', 'platformName']))
-        print("  - browser:  %s %s" % (c['browserName'], self._get_val(c, ['version', 'browserVersion'])))
+        print("  - platform: %s" % self.browser_get_platform())
+        print("  - browser:  %s %s" % (self.browser_get_name(), self.browser_get_version()))
         print("  - PID:      %d" % self.pid)
         print("  - log file: %s" % self.log_path)
 

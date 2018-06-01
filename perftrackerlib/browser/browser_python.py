@@ -18,6 +18,7 @@ import copy
 import socket
 import re
 import time
+import platform
 from threading import Lock
 from multiprocessing.dummy import Pool as ThreadPool
 
@@ -299,6 +300,9 @@ class BrowserPython(BrowserBase):
 
     def browser_get_name(self):
         return "Python HTTP/1.x browser"
+
+    def browser_get_version(self):
+        return "Python %s" % platform.python_version()
 
     def browser_set_cookie(self, url, key, val=None, path=None):
         self._get_netloc_data(url).set_cookie(url, key, val, path)
