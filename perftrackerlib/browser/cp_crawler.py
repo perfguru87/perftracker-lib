@@ -180,6 +180,9 @@ class CPBrowserRunner:
         self.pt_suite.product_ver = product_ver
         self.pt_suite.product_name = product_name
 
+        if not self.opts.pt_title and product_name and product_ver:
+            self.pt_suite.job_title = "%s %s" % (product_name, product_ver)
+
         ram = virtual_memory()
 
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
