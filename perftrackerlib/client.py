@@ -19,6 +19,22 @@ API_VER = '1.0'
 
 TEST_STATUSES = ['NOTTESTED', 'SKIPPED', 'INPROGRESS', 'SUCCESS', 'FAILED']
 
+def pt_float(value):
+    if value > 100 or value < 100:
+        return int(round(value))
+    elif value < 0.00000001:
+        return 0
+
+    val = abs(float(value))
+    thr = 100
+    prec = 0
+    while val < thr:
+        prec += 1
+        thr /= 10.0
+    fmt = "%." + str(prec) + "f"
+    return float(fmt % (val)) * (1 if value > 0 else -1)
+
+
 class ptRuntimeException(Exception):
     pass
 
@@ -75,9 +91,9 @@ class ptTest:
         self.binary = binary
         self.cmdline = cmdline
         self.description = description
-        self.scores = scores if scores else []
+        self.scores = [pt_float(s) for s in scores] if scores else []
         self.loops = loops
-        self.deviations = deviations
+        self.deviations = [pt_float(d) for d in deviations] if deviations else []
         self.category = category
         self.metrics = metrics
         self.links = links if links else {}
@@ -122,6 +138,12 @@ class ptTest:
 
         self.scores = [100]
         self.validate()
+
+    def add_score(self, score):
+        self.scores.append(pt_float(score))
+
+    def add_deviation(self, dev):
+        self.scores.append(pt_float(dev))
 
 
 class ptEnvNode:
