@@ -176,10 +176,10 @@ class CPBrowserRunner:
             group = "%s (%s)" % (g, m)
             test = self.pt_suite.getTest(name, group=group)
             if test is None:
-                test = ptTest(name, less_better=lb, group=group, metrics=m)
+                test = ptTest(name, less_better=lb, group=group, metrics=m, links={'url': page.url})
                 self.pt_suite.addTest(test)
 
-            test.scores.append(page.__dict__[f])
+            test.add_score(page.__dict__[f])
 
         self.pt_suite.upload()
 
