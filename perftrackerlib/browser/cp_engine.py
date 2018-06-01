@@ -182,7 +182,7 @@ class CPEngineBase:
     def cp_get_menu_item_title(self, title_el):
         return remove_html_tags(title_el.get_attribute("innerHTML"))
 
-    def cp_skip_menu_item(self, link_el, title):
+    def cp_skip_menu_item(self, link_el, title, url):
         return not link_el.is_displayed()
 
     def cp_do_menu_item_click(self, el, timeout_s=None, title=None):
@@ -324,7 +324,7 @@ class CPEngineBase:
                     self.log_debug("skipping void link in '%s'" % title)
                     continue
 
-                if self.cp_skip_menu_item(link_el, title):
+                if self.cp_skip_menu_item(link_el, title, link):
                     self.log_debug("skipping menu item '%s'" % title)
                     continue
 
