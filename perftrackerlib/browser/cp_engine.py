@@ -302,6 +302,8 @@ class CPEngineBase:
 
                 if not link:
                     link = link_el.get_attribute('innerHTML').strip()
+                    if "/" not in link and "#" not in link:
+                        link = self.browser.browser_get_current_url()
 
                 self.log_info("found menu item element: '%s'" % link)
 
