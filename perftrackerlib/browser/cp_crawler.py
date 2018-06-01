@@ -34,11 +34,15 @@ import re
 import shutil
 import copy
 import datetime
+import socket
+import platform
 from tempfile import gettempdir
 from optparse import OptionParser, OptionGroup
-from multiprocessing import Process, Queue
+from multiprocessing import Process, Queue, cpu_count
+from psutil import virtual_memory
 
-from perftrackerlib.client import ptSuite, ptTest
+from perftrackerlib import __version__ as __version__
+from perftrackerlib.client import ptSuite, ptTest, ptVM, ptComponent
 from .browser_base import BrowserExc, DEFAULT_NAV_TIMEOUT, DEFAULT_AJAX_THRESHOLD
 from .browser_python import BrowserPython
 from .browser_chrome import BrowserChrome
@@ -162,6 +166,37 @@ class CPBrowserRunner:
         logging.error("Login to %s under %s:%s failed" % (url, self.user, self.opts.password))
         sys.exit(-1)
 
+    def _pt_suite_init(self, cp):
+        if not self.opts.pt_project:
+            return
+
+        suite_ver = self.opts.pt_version if self.opts.pt_version else __version__
+        suite_name = "cp_crawler"
+        product_ver = self.opts.pt_product_version if self.opts.pt_product_version else cp.cp_get_product_version()
+        product_name = self.opts.pt_product_name if self.opts.pt_product_name else cp.cp_get_product_name()
+
+        self.pt_suite.suite_ver = suite_ver
+        self.pt_suite.suite_name = suite_name
+        self.pt_suite.product_ver = product_ver
+        self.pt_suite.product_name = product_name
+
+        ram = virtual_memory()
+
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(("8.8.8.8", 80))
+        ip = s.getsockname()[0]
+        s.close()
+
+        client = self.pt_suite.addNode(ptVM("client", version=platform.platform(), ip=ip, cpus=cpu_count(),
+                                       ram_mb=int(ram.total / (1024 * 1024)) if ram else 0))
+        client.addNode(ptComponent(self.browser.browser_get_name(), self.browser.browser_get_version()))
+
+    def _pt_upload(self):
+        if not self.opts.pt_project:
+            return
+
+        self.pt_suite.upload()
+
     def _pt_update_results(self, page):
         if self.opts.pt_project is None or page is None:
             return
@@ -181,7 +216,7 @@ class CPBrowserRunner:
 
             test.add_score(page.__dict__[f])
 
-        self.pt_suite.upload()
+        self._pt_upload()
 
     def _run(self):
 
@@ -227,6 +262,7 @@ class CPBrowserRunner:
             CP = CPEngineBase(self.browser)
 
         CP.cp_handle_opts(self.opts)
+        self._pt_suite_init(CP)
 
         if self.opts.randomize_urls:
             import random
