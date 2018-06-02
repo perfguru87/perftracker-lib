@@ -209,13 +209,13 @@ class CPBrowserRunner:
         if basename is None:
             return
 
-        for s, m, f, lb, g in (("Rendering", "msec", "dur", True, "Page rendering"),
-                               ("Footprint", "KB", "ram_usage_kb", False, "Browser memory footprint")):
+        for s, m, f, g in (("Rendering", "msec", "dur", "Page rendering"),
+                           ("Footprint", "KB", "ram_usage_kb", "Browser memory footprint")):
             name = "%s [%s, %s]" % (basename, s, m)
             group = "%s (%s)" % (g, m)
             test = self.pt_suite.getTest(name, group=group)
             if test is None:
-                test = ptTest(name, less_better=lb, group=group, metrics=m, description=page.url)
+                test = ptTest(name, less_better=True, group=group, metrics=m, description=page.url)
                 self.pt_suite.addTest(test)
 
             test.add_score(page.__dict__[f])
