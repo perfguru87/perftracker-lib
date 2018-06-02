@@ -47,7 +47,8 @@ def help():
         ret += ["     # yum install Xvfb"]
 
     ret += ["* To enable Chrome:",
-            "     install Chrome browser version >= 40",
+            "     install Chrome browser version >= 40:",
+            "        yum install https://dl.google.com/linux/direct/google-chrome-stable_current_x86_64.rpm",
             "     install chromedriver from here http://chromedriver.storage.googleapis.com/index.html",
             "     copy the crhromedriver to /usr/bin/ and make it executable",
             "* To enable Firefox:",
