@@ -36,6 +36,7 @@ import copy
 import datetime
 import socket
 import platform
+import math
 from tempfile import gettempdir
 from optparse import OptionParser, OptionGroup
 from multiprocessing import Process, Queue, cpu_count
@@ -218,6 +219,7 @@ class CPBrowserRunner:
                 self.pt_suite.addTest(test)
 
             test.add_score(page.__dict__[f])
+            test.duration_sec += int(math.ceil(page.dur))
 
         self._pt_upload()
 
