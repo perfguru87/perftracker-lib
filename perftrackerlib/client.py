@@ -62,7 +62,7 @@ class ptJsonEncoder(json.JSONEncoder):
 class ptTest:
     def __init__(self, tag, uuid1=None, group=None, binary=None, cmdline=None, description=None,
                 loops=None, scores=None, deviations=None, category=None, metrics="loops/sec",
-                links=None, less_better=False, errors=None, warnings=None,
+                links=None, attribs=None, less_better=False, errors=None, warnings=None,
                 begin=None, end=None, duration_sec=0, status='SUCCESS'):
         """
         tag         - keyword used to match tests results in different suites: hdd sequential read
@@ -76,6 +76,7 @@ class ptTest:
         category    - test category to be used in charts: 1-thread
         metrics     - test metrics: MB/s
         links       - arbitrary links to other systems: {'test logs': 'http://logs.localdomain/231241.log', 'grafana': 'http://grafana.localdomain/cluster3'}
+        attribs     - set of test attributes: {'version': '12.4', 'branch': 'mybranch'}
         less_better - set to True if the less is value the better
         errors      - list of errors: ['failed to create a file, permission denied']
         warnings    - list of warnings: ['I/O request timed out, retrying....', 'I/O request timed out, retrying...']
@@ -97,6 +98,7 @@ class ptTest:
         self.category = category
         self.metrics = metrics
         self.links = links if links else {}
+        self.attribs = attribs if attribs else {}
         self.less_better = less_better
         self.errors = errors
         self.warnings = warnings
@@ -113,12 +115,14 @@ class ptTest:
     def validate(self):
         assert self.tag is not None
         assert self.links is None or type(self.links) is dict
+        assert self.attribs is None or type(self.attribs) is dict
         assert self.errors is None or type(self.errors) is list
         assert self.warnings is None or type(self.warnings) is list
         assert self.scores is None or type(self.scores) is list
         assert self.loops is None or type(self.loops) is int
         assert self.deviations is None or type(self.deviations) is list
-        assert (self.deviations is None) or (self.scores is not None and len(self.scores) == len(self.deviations))
+        assert (self.deviations is None) or len(self.deviations) == 0 or \
+               (self.scores is not None and len(self.scores) == len(self.deviations))
         assert self.begin is None or type(self.begin) is datetime.datetime
         assert self.end is None or type(self.end) is datetime.datetime
         assert self.duration_sec is None or type(self.duration_sec) is int

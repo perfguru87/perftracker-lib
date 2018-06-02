@@ -9,6 +9,7 @@ bindir, basename = os.path.split(sys.argv[0])
 sys.path.insert(0, os.path.join(bindir, ".."))
 
 from perftrackerlib.client import ptSuite, ptHost, ptVM, ptComponent, ptProduct, ptTest
+from perftrackerlib import __version__
 
 
 def main(suite):
@@ -37,11 +38,15 @@ def main(suite):
     suite.addTest(ptTest("Simple user login test", less_better=True,
                          description="Login under a user, 1 parallel client, time includes navigation to home page",
                          group=g, metrics="sec", scores=[0.6, 0.72, 0.65 + random.randint(0, 10) / 10.0],
-                         deviations=[0.05, 0.12, 0.03], loops=100))
+                         deviations=[0.05, 0.12, 0.03], loops=100,
+                         links={"repo": "https://github.com/perfguru87/perftracker-client"},
+                         attribs={"version": str(__version__)}))
     suite.addTest(ptTest("Simple admin login test", less_better=True,
                          description="Login under admin, 1 parallel client",
                          group=g, metrics="sec", scores=[0.8, 0.9, 1.2 + random.randint(0, 10) / 10.0],
-                         deviations=[0.03, 0.09, 0.08], loops=100))
+                         deviations=[0.03, 0.09, 0.08], loops=100,
+                         links={"repo": "https://github.com/perfguru87/perftracker-client"},
+                         attribs={"version": str(__version__)}))
 
     for p in range(1, 5 + random.randint(0, 2)):
         suite.addTest(ptTest("Login time", group=g, metrics="sec", less_better=True,
