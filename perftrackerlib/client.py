@@ -63,7 +63,7 @@ class ptTest:
     def __init__(self, tag, uuid1=None, group=None, binary=None, cmdline=None, description=None,
                 loops=None, scores=None, deviations=None, category=None, metrics="loops/sec",
                 links=None, less_better=False, errors=None, warnings=None,
-                begin=None, end=None, status='SUCCESS'):
+                begin=None, end=None, duration_sec=0, status='SUCCESS'):
         """
         tag         - keyword used to match tests results in different suites: hdd sequential read
         group       - test group: memory, disk, cpu, ...)
@@ -102,6 +102,7 @@ class ptTest:
         self.warnings = warnings
         self.begin = begin if begin else datetime.datetime.now()
         self.end = end if end else datetime.datetime.now()
+        self.duration_sec = int(duration_sec)
         self.status = status
 
         self._auto_end = end
@@ -120,6 +121,7 @@ class ptTest:
         assert (self.deviations is None) or (self.scores is not None and len(self.scores) == len(self.deviations))
         assert self.begin is None or type(self.begin) is datetime.datetime
         assert self.end is None or type(self.end) is datetime.datetime
+        assert self.duration_sec is None or type(self.duration_sec) is int
         assert self.status in TEST_STATUSES
 
     def execute(self, host=None, path=None):
