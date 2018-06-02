@@ -132,10 +132,12 @@ class ptTest:
         """
         raise ptRuntimeException("Sorry, not implemented")
 
-        if self._auto_begin:
+        if self._auto_begin is None:
             self.begin = datetime.datetime.now()
 
-        if self._auto_end:
+        # execute...
+
+        if self._auto_end is None:
             self.end = datetime.datetime.now()
 
         self.scores = [100]
@@ -294,6 +296,9 @@ class ptSuite:
         return "%s/api/v%s/%s" % (self.cmdline_options.pt_url, API_VER, url)
 
     def upload(self):
+        if self._auto_end is None:
+            self.end = datetime.datetime.now()
+
         json_prettified = self.toJson(pretty=True)
 
         if self.cmdline_options.pt_to_file:
