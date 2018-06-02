@@ -209,9 +209,9 @@ class CPBrowserRunner:
         if basename is None:
             return
 
-        for n, m, f, lb, g in (("Rendering", "msec", "dur", True, "Page rendering"),
+        for s, m, f, lb, g in (("Rendering", "msec", "dur", True, "Page rendering"),
                                ("Footprint", "KB", "ram_usage_kb", False, "Browser memory footprint")):
-            name = "%s: %s" % (n, basename)
+            name = "%s [%s, %s]" % (basename, s, m)
             group = "%s (%s)" % (g, m)
             test = self.pt_suite.getTest(name, group=group)
             if test is None:
