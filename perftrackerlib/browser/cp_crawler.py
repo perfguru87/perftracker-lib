@@ -358,6 +358,8 @@ class CPBrowserRunner:
 
                     time.sleep(self.opts.delay)
                     try:
+                        if self.opts.reset_dom:
+                            CP.browser.navigation_reset()
                         page = CP.cp_do_navigate(url, cached=cached, name=name)
                         self._pt_update_results(page)
                         if not page:
@@ -511,6 +513,8 @@ class CPCrawler:
                       help="treat given page as apache directory listing index page and parse URLs from there")
         og.add_option("-u", "--uncached", action="store_true", help="invalidate browser cache before each request")
         og.add_option("-s", "--session", type="string", help="session ID")
+        og.add_option("-e", "--reset-dom", action="store_true", help="reset DOM model after every nav click")
+
         op.add_option_group(og)
 
         og = OptionGroup(op, "Page navigation timings")
