@@ -7,6 +7,7 @@ import uuid
 import inspect
 import logging
 import pipes
+import subprocess
 from dateutil.tz import tzlocal
 from collections import OrderedDict
 
@@ -128,24 +129,51 @@ class ptTest:
         assert self.duration_sec is None or type(self.duration_sec) is int
         assert self.status in TEST_STATUSES
 
-    def execute(self, host=None, path=None):
+    def _execute_local(self, path=None, exc_on_err=False):
+
+        cmd = self.binary
+        if sys.platform == 'win32':
+            cmd += ".exe"
+
+        if path:
+            cmd = os.path.join(path, cmd)
+
+        if self.cmdline:
+            cmd += ' %' % self.cmdline
+
+        logging.debug("executing: %s" % (cmd))
+        p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        stdout_text, stderr_text = p.communicate()
+        p.wait()
+        status = p.returncode
+        if status and exc_on_err:
+            raise RuntimeError("'%s' execution failed with status %d:\n%s\n%s" % (cmd, status, stdout_text, stderr_text))
+        logging.debug("'%s' status %d, stdout:\n%s\nstderr:\n%s" % (cmd, status, stdout_text, stderr_text))
+
+        return (status, stdout_text, stderr_text)
+
+    def execute(self, host=None, path=None, exc_on_err=False):
         """
         Simple test executor:
         host - host IP/hostname where to execute the test, keep None for local launch: '192.168.0.100'
         path - path to search tests (list): ['/tmp/tests', '/opt/tests/bin/']
         """
-        raise ptRuntimeException("Sorry, not implemented")
+
+        if self.binary is None:
+            raise ptRuntimeException("Test binary is not specified")
 
         if self._auto_begin is None:
             self.begin = datetime.datetime.now()
 
-        # execute...
+        if host is None:
+            status, out, err = self._execute_local(path, exc_on_err)
+        else:
+            raise ptRuntimeException("Sorry, remote host is not implemented")
 
         if self._auto_end is None:
             self.end = datetime.datetime.now()
 
-        self.scores = [100]
-        self.validate()
+        return status, out, err
 
     def add_score(self, score):
         self.scores.append(pt_float(score))
