@@ -129,7 +129,7 @@ class ptTest:
         assert self.duration_sec is None or type(self.duration_sec) is int
         assert self.status in TEST_STATUSES
 
-    def _execute_local(self, path=None, exc_on_err=False):
+    def _execute_local(self, path=None, exc_on_err=False, log_file=None):
 
         cmd = self.binary
         if sys.platform == 'win32':
@@ -139,12 +139,24 @@ class ptTest:
             cmd = os.path.join(path, cmd)
 
         if self.cmdline:
-            cmd += ' %' % self.cmdline
+            cmd += " %s" % self.cmdline
 
         logging.debug("executing: %s" % (cmd))
         p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         stdout_text, stderr_text = p.communicate()
         p.wait()
+
+        if log_file:
+            logging.debug("Storing the output to: %s" % log_file)
+            lf = open(log_file, "a")
+            if stdout_text:
+                lf.write("=============== stdout =================\n\n")
+                lf.write(stdout_text)
+            if stderr_text:
+                lf.write("=============== stderr =================\n\n")
+                lf.write(stderr_text)
+            lf.close()
+
         status = p.returncode
         if status and exc_on_err:
             raise RuntimeError("'%s' execution failed with status %d:\n%s\n%s" % (cmd, status, stdout_text, stderr_text))
@@ -152,7 +164,7 @@ class ptTest:
 
         return (status, stdout_text, stderr_text)
 
-    def execute(self, host=None, path=None, exc_on_err=False):
+    def execute(self, host=None, path=None, exc_on_err=False, log_file=None):
         """
         Simple test executor:
         host - host IP/hostname where to execute the test, keep None for local launch: '192.168.0.100'
@@ -166,7 +178,7 @@ class ptTest:
             self.begin = datetime.datetime.now()
 
         if host is None:
-            status, out, err = self._execute_local(path, exc_on_err)
+            status, out, err = self._execute_local(path, exc_on_err, log_file=log_file)
         else:
             raise ptRuntimeException("Sorry, remote host is not implemented")
 
