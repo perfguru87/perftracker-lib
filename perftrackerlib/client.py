@@ -391,6 +391,8 @@ class ptSuite:
         g.add_option("--pt-append", type="str", help="append tests results to the job with given UUID")
         g.add_option("--pt-title", type="str",  help="PerfTracker job title to be used")
         g.add_option("--pt-version", type="str",  help="PerfTracker suite version")
+        g.add_option("--pt-regression-tag", type="str",  help="PerfTracker suite regression tag")
+        g.add_option("--pt-regression-name", type="str",  help="PerfTracker suite regression name")
         g.add_option("--pt-product-version", type="str", help="The version of the product being tested")
         g.add_option("--pt-product-name", type="str", help="The name of the product being tested")
         option_parser.add_option_group(g)
@@ -408,6 +410,10 @@ class ptSuite:
             self.job_title = self.cmdline_options.pt_title
         if self.cmdline_options.pt_version:
             self.suite_ver = self.cmdline_options.pt_version
+        if self.cmdline_options.pt_regression_tag:
+            self.regression_tag = self.cmdline_options.pt_regression_tag
+        if self.cmdline_options.pt_regression_name:
+            self.regression_name = self.cmdline_options.pt_regression_name
         if self.cmdline_options.pt_append:
             self.uuid = self.cmdline_options.pt_append
             self.append = True
