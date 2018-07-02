@@ -414,6 +414,10 @@ class ptSuite:
             self.regression_tag = self.cmdline_options.pt_regression_tag
         if self.cmdline_options.pt_regression_name:
             self.regression_name = self.cmdline_options.pt_regression_name
+        if self.cmdline_options.pt_product_name:
+            self.product_name = self.cmdline_optons.pt_product_name
+        if self.cmdline_options.pt_product_version:
+            self.product_ver = self.cmdline_options.pt_product_version
         if self.cmdline_options.pt_append:
             self.uuid = self.cmdline_options.pt_append
             self.append = True
