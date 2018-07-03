@@ -5,7 +5,7 @@ from __future__ import print_function
 import sys
 from distutils.version import LooseVersion
 
-__version__ = "0.0.15"
+__version__ = "0.0.16"
 
 def perftrackerlib_require_version(ver_required):
     if LooseVersion(__version__) < LooseVersion(ver_required):
