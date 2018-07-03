@@ -179,6 +179,9 @@ class CPEngineBase:
             return url
         return self.browser.browser_get_current_url()
 
+    def cp_restore_nav_menu_url(self):
+        return False
+
     def cp_get_menu_item_title(self, title_el):
         return remove_html_tags(title_el.get_attribute("innerHTML"))
 
@@ -276,6 +279,11 @@ class CPEngineBase:
 
         if len(self.menu_xpaths) <= menu.level:
             return
+
+        if menu.link != self.cp_get_current_url():
+            if self.cp_restore_nav_menu_url():
+                self.log_debug("Restore navigatio menu URL back to: '%s'" % menu.link)
+                self.browser.navigate_to(menu.link)
 
         for x in self.menu_xpaths[menu.level]:
 
