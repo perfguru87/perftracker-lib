@@ -69,10 +69,12 @@ class HTTPConnectionPycurl:
             if self.cleaning_needed:
                 c.setopt(pycurl.POST, 0)
                 c.unsetopt(pycurl.CUSTOMREQUEST)
+                c.setopt(pycurl.NOBODY, 0)
                 self.cleaning_needed = False
         elif verb == 'POST':
             self.cleaning_needed = True
             c.unsetopt(pycurl.CUSTOMREQUEST)
+            c.setopt(pycurl.NOBODY, 0)
             c.setopt(pycurl.POST, 1)
             c.setopt(pycurl.POSTFIELDS, body or "")
             hdrs.append("Expect:")
@@ -80,7 +82,13 @@ class HTTPConnectionPycurl:
             self.cleaning_needed = True
             c.setopt(pycurl.POST, 0)
             c.setopt(pycurl.CUSTOMREQUEST, verb)
+            c.setopt(pycurl.NOBODY, 0)
             c.setopt(pycurl.POSTFIELDS, body or "")
+        elif verb == 'HEAD':
+            self.cleaning_needed = True
+            c.setopt(pycurl.POST, 0)
+            c.unsetopt(pycurl.CUSTOMREQUEST)
+            c.setopt(pycurl.NOBODY, 1)
         else:
             raise pycurl.error("unsupported verb: " + verb)
         c.setopt(pycurl.URL, str(self.prefix + path))
@@ -108,6 +116,8 @@ class HTTPConnectionPycurl:
     def _debug(self, debug_type, debug_msg):
         if debug_type in (0, 3, 4, 5, 6):
             return  # skip details(0), body (3,4), and ssl (5,6)
+        if type(debug_msg) == bytes:
+            debug_msg = debug_msg.decode("utf-8")
         if debug_type == 2:
             debug_msg = debug_msg.replace("\r\n", "\n")
         logging.log(logging.DEBUG - 1, "pycurl(%d): %s" % (debug_type, debug_msg.strip()))
