@@ -71,6 +71,12 @@ class HTTPConnectionPycurl:
                 c.unsetopt(pycurl.CUSTOMREQUEST)
                 c.setopt(pycurl.NOBODY, 0)
                 self.cleaning_needed = False
+            if body:
+                self.cleaning_needed = True
+                c.setopt(pycurl.POST, 0)
+                c.setopt(pycurl.CUSTOMREQUEST, verb)
+                c.setopt(pycurl.NOBODY, 0)
+                c.setopt(pycurl.POSTFIELDS, body or "")
         elif verb == 'POST':
             self.cleaning_needed = True
             c.unsetopt(pycurl.CUSTOMREQUEST)
