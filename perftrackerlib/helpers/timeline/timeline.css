@@ -48,16 +48,16 @@ div.timeline-axis-text-major {
 
 div.timeline-event {
     -moz-box-sizing: border-box;
-    background-color: #d5ddf6;
+    background-color: #61b7d1;
     border-color: #97b0f8;
     box-sizing: border-box;
-    color: #1a1a1a;
+    color: #fff;
     display: inline-block;
 }
 
 div.timeline-event-selected {
-    background-color: #fff785;
-    border-color: #ffc200;
+    background-color: #81d7f1;
+    border-color: #97b0f8;
     z-index: 999;
 }
 
@@ -116,6 +116,38 @@ div.timeline-event-content {
     white-space: nowrap;
 }
 
+div.timeline-event-content div.timeline-event-phases {
+    width: 100%;
+}
+
+div.timeline-event-phase {
+    font-size: 8px;
+    line-height: 8px;
+    width: 15px;
+    padding: 1px;
+    border: 1px solid #000;
+}
+
+div.timeline-event-content div.timeline-event-phases div {
+    height: 14px;
+    float: left;
+    display: block;
+}
+
+div.timeline-event-range {
+    border: 1px solid #333 !important;
+}
+
+div.timeline-event-content div.timeline-event-phases div, div.timeline-event-content {
+    margin: 0px !important;
+    height: 16px !important;
+}
+
+div.timeline-event-content div.timeline-event-phases div span {
+    padding-left: 1px;
+    overflow: hidden;
+}
+
 div.timeline-groups-axis {
     -moz-box-sizing: border-box;
     border-color: #bebebe;
@@ -153,16 +185,17 @@ div.timeline-customtime {
 }
 
 div.timeline-navigation {
-    -moz-border-radius: 2px; /* For Firefox 3.6 and older */
+    -moz-border-radius: 0px 0px 0px 2px; /* For Firefox 3.6 and older */
     -moz-box-sizing: border-box;
     background-color: #f5f5f5;
     border: 1px solid #bebebe;
-    border-radius: 2px;
+    border-radius: 0px 0px 0px 2px;
     box-sizing: border-box;
     color: #808080;
     font-family: arial;
-    font-size: 20px;
+    font-size: 16px;
     font-weight: bold;
+    height: 22px;
 }
 
 div.timeline-navigation-new,
@@ -175,10 +208,21 @@ div.timeline-navigation-move-right {
     box-sizing: border-box;
     cursor: pointer;
     float: left;
-    height: 36px;
-    padding: 10px;
+    height: 20px;
+    padding: 2px;
     text-decoration: none;
-    width: 36px;
+    width: 20px;
+    text-align: center;
+}
+
+div.timeline-navigation-new:hover,
+div.timeline-navigation-delete:hover,
+div.timeline-navigation-zoom-in:hover,
+div.timeline-navigation-zoom-out:hover,
+div.timeline-navigation-move-left:hover,
+div.timeline-navigation-move-right:hover {
+    background-color: #339;
+    color: #fff;
 }
 
 div.timeline-navigation-new {
@@ -191,21 +235,16 @@ div.timeline-navigation-new-line {
 }
 
 div.timeline-navigation-delete {
-    background: url('img/16/delete.png') no-repeat center;
 }
 
 div.timeline-navigation-zoom-in {
-    background: url('img/16/zoomin.png') no-repeat center;
 }
 
 div.timeline-navigation-zoom-out {
-    background: url('img/16/zoomout.png') no-repeat center;
 }
 
 div.timeline-navigation-move-left {
-    background: url('img/16/moveleft.png') no-repeat center;
 }
 
 div.timeline-navigation-move-right {
-    background: url('img/16/moveright.png') no-repeat center;
 }
