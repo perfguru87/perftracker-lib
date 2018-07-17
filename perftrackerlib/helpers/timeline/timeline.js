@@ -442,8 +442,12 @@ links.Timeline.prototype.setData = function(data) {
     var items = this.items;
     this.deleteGroups();
 
+/*
     if (google && google.visualization &&
         data instanceof google.visualization.DataTable) {
+    FIXME: it doesn't work!
+*/
+    if (google && google.visualization) {
         // map the datatable columns
         var cols = links.Timeline.mapColumnIds(data);
 
@@ -527,6 +531,7 @@ links.Timeline.prototype.updateData = function  (index, values) {
                     if (typeof(value) == 'number')       {valueType = 'number';}
                     else if (typeof(value) == 'boolean') {valueType = 'boolean';}
                     else if (value instanceof Date)      {valueType = 'datetime';}
+                    else if (value instanceof uDate)     {valueType = 'datetime';}
                     col = data.addColumn(valueType, prop);
                 }
                 data.setValue(index, col, values[prop]);
@@ -693,8 +698,8 @@ links.Timeline.prototype.setSize = function(width, height) {
  * Set start undefined to include everything from the earliest date to end.
  * Set end undefined to include everything from start to the last date.
  * Example usage:
- *    myTimeline.setVisibleChartRange(new Date("2010-08-22"),
- *                                    new Date("2010-09-13"));
+ *    myTimeline.setVisibleChartRange(new uDate("2010-08-22"),
+ *                                    new uDate("2010-09-13"));
  * @param {Date}   start     The start date for the timeline. optional
  * @param {Date}   end       The end date for the timeline. optional
  * @param {boolean} redraw   Optional. If true (default) the Timeline is
@@ -715,13 +720,13 @@ links.Timeline.prototype.setVisibleChartRange = function(start, end, redraw) {
             }
             else {
                 // 7 days before the end
-                start = new Date(end.valueOf());
+                start = new uDate(end.valueOf());
                 start.setDate(start.getDate() - 7);
             }
         }
         else {
             // default of 3 days ago
-            start = new Date();
+            start = new uDate();
             start.setDate(start.getDate() - 3);
         }
     }
@@ -733,14 +738,14 @@ links.Timeline.prototype.setVisibleChartRange = function(start, end, redraw) {
         }
         else {
             // 7 days after start
-            end = new Date(start.valueOf());
+            end = new uDate(start.valueOf());
             end.setDate(end.getDate() + 7);
         }
     }
 
-    // prevent start Date <= end Date
+    // prevent start uDate <= end uDate
     if (end <= start) {
-        end = new Date(start.valueOf());
+        end = new uDate(start.valueOf());
         end.setDate(end.getDate() + 7);
     }
 
@@ -748,11 +753,11 @@ links.Timeline.prototype.setVisibleChartRange = function(start, end, redraw) {
     // because that method will try to maintain the interval (end-start)
     var min = this.options.min ? this.options.min : undefined; // date
     if (min != undefined && start.valueOf() < min.valueOf()) {
-        start = new Date(min.valueOf()); // date
+        start = new uDate(min.valueOf()); // date
     }
     var max = this.options.max ? this.options.max : undefined; // date
     if (max != undefined && end.valueOf() > max.valueOf()) {
-        end = new Date(max.valueOf()); // date
+        end = new uDate(max.valueOf()); // date
     }
 
     this.applyRange(start, end);
@@ -781,12 +786,12 @@ links.Timeline.prototype.setVisibleChartRangeAuto = function() {
  * of the timeline
  */
 links.Timeline.prototype.setVisibleChartRangeNow = function() {
-    var now = new Date();
+    var now = new uDate();
 
     var diff = (this.end.valueOf() - this.start.valueOf());
 
-    var startNew = new Date(now.valueOf() - diff/2);
-    var endNew = new Date(startNew.valueOf() + diff);
+    var startNew = new uDate(now.valueOf() - diff/2);
+    var endNew = new uDate(startNew.valueOf() + diff);
     this.setVisibleChartRange(startNew, endNew);
 };
 
@@ -797,8 +802,8 @@ links.Timeline.prototype.setVisibleChartRangeNow = function() {
  */
 links.Timeline.prototype.getVisibleChartRange = function() {
     return {
-        'start': new Date(this.start.valueOf()),
-        'end': new Date(this.end.valueOf())
+        'start': new uDate(this.start.valueOf()),
+        'end': new uDate(this.end.valueOf())
     };
 };
 
@@ -841,8 +846,8 @@ links.Timeline.prototype.getDataRange = function (withMargin) {
     }
 
     return {
-        'min': min != undefined ? new Date(min) : undefined,
-        'max': max != undefined ? new Date(max) : undefined
+        'min': min != undefined ? new uDate(min) : undefined,
+        'max': max != undefined ? new uDate(max) : undefined
     };
 };
 
@@ -1536,10 +1541,11 @@ links.Timeline.prototype.reflowItems = function() {
             // TODO: move updating width and height into item.reflow
             var width = domItem ? domItem.clientWidth : 0;
             var height = domItem ? domItem.clientHeight : 0;
+            var border = domItem ? (domItem.offsetWidth - domItem.clientWidth) / 2 : 0;
             resized = resized || (item.width != width);
             resized = resized || (item.height != height);
             item.width = width;
-            item.height = height;
+            item.height = height + 1 + border * 2;
             //item.borderWidth = (domItem.offsetWidth - domItem.clientWidth - 2) / 2; // TODO: borderWidth
             item.reflow();
         }
@@ -2052,8 +2058,8 @@ links.Timeline.prototype.repaintCurrentTime = function() {
         dom.currentTime = currentTime;
     }
 
-    var now = new Date();
-    var nowOffset = new Date(now.valueOf() + this.clientTimeOffset);
+    var now = new uDate();
+    var nowOffset = new uDate(now.valueOf() + this.clientTimeOffset);
     var x = this.timeToScreen(nowOffset);
 
     var visible = (x > -size.contentWidth && x < 2 * size.contentWidth);
@@ -2112,7 +2118,7 @@ links.Timeline.prototype.repaintCustomTime = function() {
         dom.customTime = customTime;
 
         // initialize parameter
-        this.customTime = new Date();
+        this.customTime = new uDate();
     }
 
     var x = this.timeToScreen(this.customTime),
@@ -2244,16 +2250,16 @@ links.Timeline.prototype.repaintNavigation = function () {
             navBar.style.position = "absolute";
             navBar.className = "timeline-navigation ui-widget ui-state-highlight ui-corner-all";
             if (options.groupsOnRight) {
-                navBar.style.left = '10px';
+                navBar.style.left = '0px';
             }
             else {
-                navBar.style.right = '10px';
+                navBar.style.right = '-1px';
             }
             if (options.axisOnTop) {
-                navBar.style.bottom = '10px';
+                navBar.style.top = '-1px';
             }
             else {
-                navBar.style.top = '10px';
+                navBar.style.bottom = '0px';
             }
             dom.navBar = navBar;
             frame.appendChild(navBar);
@@ -2325,6 +2331,7 @@ links.Timeline.prototype.repaintNavigation = function () {
                 navBar.zoomInButton.title = this.options.ZOOM_IN;
                 var ziIconSpan = document.createElement("SPAN");
                 ziIconSpan.className = "ui-icon ui-icon-circle-zoomin";
+                ziIconSpan.innerHTML = "&plus;";
                 navBar.zoomInButton.appendChild(ziIconSpan);
 
                 var onZoomIn = function(event) {
@@ -2343,6 +2350,7 @@ links.Timeline.prototype.repaintNavigation = function () {
                 navBar.zoomOutButton.title = this.options.ZOOM_OUT;
                 var zoIconSpan = document.createElement("SPAN");
                 zoIconSpan.className = "ui-icon ui-icon-circle-zoomout";
+                zoIconSpan.innerHTML = "&minus;";
                 navBar.zoomOutButton.appendChild(zoIconSpan);
 
                 var onZoomOut = function(event) {
@@ -2363,6 +2371,7 @@ links.Timeline.prototype.repaintNavigation = function () {
                 navBar.moveLeftButton.title = this.options.MOVE_LEFT;
                 var mlIconSpan = document.createElement("SPAN");
                 mlIconSpan.className = "ui-icon ui-icon-circle-arrow-w";
+                mlIconSpan.innerHTML = "&laquo;";
                 navBar.moveLeftButton.appendChild(mlIconSpan);
 
                 var onMoveLeft = function(event) {
@@ -2381,6 +2390,7 @@ links.Timeline.prototype.repaintNavigation = function () {
                 navBar.moveRightButton.title = this.options.MOVE_RIGHT;
                 var mrIconSpan = document.createElement("SPAN");
                 mrIconSpan.className = "ui-icon ui-icon-circle-arrow-e";
+                mrIconSpan.innerHTML = "&raquo;";
                 navBar.moveRightButton.appendChild(mrIconSpan);
 
                 var onMoveRight = function(event) {
@@ -2404,7 +2414,7 @@ links.Timeline.prototype.repaintNavigation = function () {
  * @param {Date} time
  */
 links.Timeline.prototype.setCurrentTime = function(time) {
-    var now = new Date();
+    var now = new uDate();
     this.clientTimeOffset = (time.valueOf() - now.valueOf());
 
     this.repaintCurrentTime();
@@ -2416,8 +2426,8 @@ links.Timeline.prototype.setCurrentTime = function(time) {
  * @return {Date} time
  */
 links.Timeline.prototype.getCurrentTime = function() {
-    var now = new Date();
-    return new Date(now.valueOf() + this.clientTimeOffset);
+    var now = new uDate();
+    return new uDate(now.valueOf() + this.clientTimeOffset);
 };
 
 
@@ -2427,7 +2437,7 @@ links.Timeline.prototype.getCurrentTime = function() {
  * @param {Date} time
  */
 links.Timeline.prototype.setCustomTime = function(time) {
-    this.customTime = new Date(time.valueOf());
+    this.customTime = new uDate(time.valueOf());
     this.repaintCustomTime();
 };
 
@@ -2436,7 +2446,7 @@ links.Timeline.prototype.setCustomTime = function(time) {
  * @return {Date} customTime
  */
 links.Timeline.prototype.getCustomTime = function() {
-    return new Date(this.customTime.valueOf());
+    return new uDate(this.customTime.valueOf());
 };
 
 /**
@@ -2525,7 +2535,7 @@ links.Timeline.prototype.recalcConversion = function() {
  */
 links.Timeline.prototype.screenToTime = function(x) {
     var conversion = this.conversion;
-    return new Date(x / conversion.factor + conversion.offset);
+    return new uDate(x / conversion.factor + conversion.offset);
 };
 
 /**
@@ -2572,7 +2582,7 @@ links.Timeline.prototype.onTouchStart = function(event) {
     /* TODO
      // check for double tap event
      var delta = 500; // ms
-     var doubleTapStart = (new Date()).valueOf();
+     var doubleTapStart = (new uDate()).valueOf();
      var target = links.Timeline.getTarget(event);
      var doubleTapItem = this.getItemIndex(target);
      if (params.doubleTapStart &&
@@ -2590,7 +2600,7 @@ links.Timeline.prototype.onTouchStart = function(event) {
     var target = links.Timeline.getTarget(event);
     var item = this.getItemIndex(target);
     params.doubleTapStartPrev = params.doubleTapStart;
-    params.doubleTapStart = (new Date()).valueOf();
+    params.doubleTapStart = (new uDate()).valueOf();
     params.doubleTapItemPrev = params.doubleTapItem;
     params.doubleTapItem = item;
 
@@ -2621,8 +2631,8 @@ links.Timeline.prototype.onTouchMove = function(event) {
                 oldWidth = (params.end.valueOf() - params.start.valueOf()),
                 newWidth = oldWidth / scale,
                 diff = newWidth - oldWidth,
-                start = new Date(parseInt(params.start.valueOf() - diff/2)),
-                end = new Date(parseInt(params.end.valueOf() + diff/2));
+                start = new uDate(parseInt(params.start.valueOf() - diff/2)),
+                end = new uDate(parseInt(params.end.valueOf() + diff/2));
 
             // TODO: determine zoom-around-date from touch positions?
 
@@ -2660,7 +2670,7 @@ links.Timeline.prototype.onTouchEnd = function(event) {
 
     // check for double tap event
     var delta = 500; // ms
-    var doubleTapEnd = (new Date()).valueOf();
+    var doubleTapEnd = (new uDate()).valueOf();
     var target = links.Timeline.getTarget(event);
     var doubleTapItem = this.getItemIndex(target);
     if (params.doubleTapStartPrev &&
@@ -2702,8 +2712,8 @@ links.Timeline.prototype.onMouseDown = function(event) {
     params.previousOffset = 0;
 
     params.moved = false;
-    params.start = new Date(this.start.valueOf());
-    params.end = new Date(this.end.valueOf());
+    params.start = new uDate(this.start.valueOf());
+    params.end = new uDate(this.end.valueOf());
 
     params.target = links.Timeline.getTarget(event);
     var dragLeft = (dom.items && dom.items.dragLeft) ? dom.items.dragLeft : undefined;
@@ -2735,7 +2745,7 @@ links.Timeline.prototype.onMouseDown = function(event) {
         if (options.snapEvents) {
             this.step.snap(xstart);
         }
-        var xend = new Date(xstart.valueOf());
+        var xend = new uDate(xstart.valueOf());
         var content = options.NEW;
         var group = this.getGroupFromHeight(y);
         this.addItem({
@@ -2904,8 +2914,8 @@ links.Timeline.prototype.onMouseMove = function (event) {
     else if (options.moveable) {
         var interval = (params.end.valueOf() - params.start.valueOf());
         var diffMillisecs = Math.round((-diffX) / size.contentWidth * interval);
-        var newStart = new Date(params.start.valueOf() + diffMillisecs);
-        var newEnd = new Date(params.end.valueOf() + diffMillisecs);
+        var newStart = new uDate(params.start.valueOf() + diffMillisecs);
+        var newEnd = new uDate(params.end.valueOf() + diffMillisecs);
         this.applyRange(newStart, newEnd);
         // if the applied range is moved due to a fixed min or max,
         // change the diffMillisecs accordingly
@@ -3235,7 +3245,7 @@ links.Timeline.prototype.onMouseWheel = function(event) {
 links.Timeline.prototype.zoom = function(zoomFactor, zoomAroundDate) {
     // if zoomAroundDate is not provided, take it half between start Date and end Date
     if (zoomAroundDate == undefined) {
-        zoomAroundDate = new Date((this.start.valueOf() + this.end.valueOf()) / 2);
+        zoomAroundDate = new uDate((this.start.valueOf() + this.end.valueOf()) / 2);
     }
 
     // prevent zoom factor larger than 1 or smaller than -1 (larger than 1 will
@@ -3258,8 +3268,8 @@ links.Timeline.prototype.zoom = function(zoomFactor, zoomAroundDate) {
     var endDiff = (this.end.valueOf() - zoomAroundDate);
 
     // calculate new dates
-    var newStart = new Date(this.start.valueOf() - startDiff * zoomFactor);
-    var newEnd   = new Date(this.end.valueOf() - endDiff * zoomFactor);
+    var newStart = new uDate(this.start.valueOf() - startDiff * zoomFactor);
+    var newEnd   = new uDate(this.end.valueOf() - endDiff * zoomFactor);
 
     // only zoom in when interval is larger than minimum interval (to prevent
     // sliding to left/right when having reached the minimum zoom level)
@@ -3288,8 +3298,8 @@ links.Timeline.prototype.move = function(moveFactor) {
     var diff = (this.end.valueOf() - this.start.valueOf());
 
     // apply new dates
-    var newStart = new Date(this.start.valueOf() + diff * moveFactor);
-    var newEnd   = new Date(this.end.valueOf() + diff * moveFactor);
+    var newStart = new uDate(this.start.valueOf() + diff * moveFactor);
+    var newEnd   = new uDate(this.end.valueOf() + diff * moveFactor);
     this.applyRange(newStart, newEnd);
 
     this.render(); // TODO: optimize, no need to reflow, only to recalc conversion and repaint
@@ -3381,8 +3391,8 @@ links.Timeline.prototype.applyRange = function (start, end, zoomAroundDate) {
     }
 
     // apply new dates
-    this.start = new Date(startValue);
-    this.end = new Date(endValue);
+    this.start = new uDate(startValue);
+    this.end = new uDate(endValue);
 };
 
 /**
@@ -4746,9 +4756,9 @@ links.Timeline.prototype.getItem = function (index) {
     // override the data with current settings of the item (should be the same)
     var item = this.items[index];
 
-    itemData.start = new Date(item.start.valueOf());
+    itemData.start = new uDate(item.start.valueOf());
     if (item.end) {
-        itemData.end = new Date(item.end.valueOf());
+        itemData.end = new uDate(item.end.valueOf());
     }
     itemData.content = item.content;
     if (item.group) {
@@ -4785,7 +4795,7 @@ links.Timeline.prototype.getCluster = function (index) {
         cluster = this.clusters[index],
         clusterItems = cluster.items;
     
-    clusterData.start = new Date(cluster.start.valueOf());
+    clusterData.start = new uDate(cluster.start.valueOf());
     if (cluster.type) {
         clusterData.type = cluster.type;
     }
@@ -5074,8 +5084,8 @@ links.Timeline.prototype.setSelection = function(selection) {
                     middle = start.valueOf();
                 }
                 var diff = (this.end.valueOf() - this.start.valueOf()),
-                    newStart = new Date(middle - diff/2),
-                    newEnd = new Date(middle + diff/2);
+                    newStart = new uDate(middle - diff/2),
+                    newEnd = new uDate(middle + diff/2);
 
                 this.setVisibleChartRange(newStart, newEnd);
 
@@ -5580,15 +5590,15 @@ links.Timeline.prototype.trigger = function (event) {
         case 'rangechange':
         case 'rangechanged':
             properties = {
-                'start': new Date(this.start.valueOf()),
-                'end': new Date(this.end.valueOf())
+                'start': new uDate(this.start.valueOf()),
+                'end': new uDate(this.end.valueOf())
             };
             break;
 
         case 'timechange':
         case 'timechanged':
             properties = {
-                'time': new Date(this.customTime.valueOf())
+                'time': new uDate(this.customTime.valueOf())
             };
             break;
     }
@@ -5648,8 +5658,8 @@ links.Timeline.prototype.clusterItems = function () {
 links.Timeline.prototype.filterItems = function () {
     var queue = this.renderQueue,
         window = (this.end - this.start),
-        start = new Date(this.start.valueOf() - window),
-        end = new Date(this.end.valueOf() + window);
+        start = new uDate(this.start.valueOf() - window),
+        end = new uDate(this.end.valueOf() + window);
 
     function filter (arr) {
         arr.forEach(function (item) {
@@ -5892,8 +5902,8 @@ links.Timeline.ClusterGenerator.prototype.getClusters = function (scale, maxItem
                         if (containsRanges) {
                             // boxes and/or ranges
                             cluster = this.timeline.createItem({
-                                'start': new Date(min),
-                                'end': new Date(max),
+                                'start': new uDate(min),
+                                'end': new uDate(max),
                                 'content': content,
                                 'group': group
                             });
@@ -5901,7 +5911,7 @@ links.Timeline.ClusterGenerator.prototype.getClusters = function (scale, maxItem
                         else {
                             // boxes only
                             cluster = this.timeline.createItem({
-                                'start': new Date(avg),
+                                'start': new uDate(avg),
                                 'content': content,
                                 'group': group
                             });
@@ -6073,17 +6083,17 @@ links.events = links.events || {
  *
  * Version: 1.2
  *
- * @param {Date} start          The start date, for example new Date(2010, 9, 21)
- *                              or new Date(2010, 9, 21, 23, 45, 00)
+ * @param {Date} start          The start date, for example new uDate(2010, 9, 21)
+ *                              or new uDate(2010, 9, 21, 23, 45, 00)
  * @param {Date} end            The end date
  * @param {Number}  minimumStep Optional. Minimum step size in milliseconds
  */
 links.Timeline.StepDate = function(start, end, minimumStep) {
 
     // variables
-    this.current = new Date();
-    this._start = new Date();
-    this._end = new Date();
+    this.current = new uDate();
+    this._start = new uDate();
+    this._end = new uDate();
 
     this.autoScale  = true;
     this.scale = links.Timeline.StepDate.SCALE.DAY;
@@ -6095,14 +6105,15 @@ links.Timeline.StepDate = function(start, end, minimumStep) {
 
 /// enum scale
 links.Timeline.StepDate.SCALE = {
-    MILLISECOND: 1,
-    SECOND: 2,
-    MINUTE: 3,
-    HOUR: 4,
-    DAY: 5,
-    WEEKDAY: 6,
-    MONTH: 7,
-    YEAR: 8
+    MICROSECOND: 1,
+    MILLISECOND: 2,
+    SECOND: 3,
+    MINUTE: 4,
+    HOUR: 5,
+    DAY: 6,
+    WEEKDAY: 7,
+    MONTH: 8,
+    YEAR: 9
 };
 
 
@@ -6117,13 +6128,13 @@ links.Timeline.StepDate.SCALE = {
  * @param {int}  minimumStep  Optional. Minimum step size in milliseconds
  */
 links.Timeline.StepDate.prototype.setRange = function(start, end, minimumStep) {
-    if (!(start instanceof Date) || !(end instanceof Date)) {
+    if (!(start instanceof uDate) || !(end instanceof uDate)) {
         //throw  "No legal start or end date in method setRange";
         return;
     }
 
-    this._start = (start != undefined) ? new Date(start.valueOf()) : new Date();
-    this._end = (end != undefined) ? new Date(end.valueOf()) : new Date();
+    this._start = (start != undefined) ? new uDate(start.valueOf()) : new uDate();
+    this._end = (end != undefined) ? new uDate(end.valueOf()) : new uDate();
 
     if (this.autoScale) {
         this.setMinimumStep(minimumStep);
@@ -6134,7 +6145,7 @@ links.Timeline.StepDate.prototype.setRange = function(start, end, minimumStep) {
  * Set the step iterator to the start date.
  */
 links.Timeline.StepDate.prototype.start = function() {
-    this.current = new Date(this._start.valueOf());
+    this.current = new uDate(this._start.valueOf());
     this.roundToMinor();
 };
 
@@ -6156,12 +6167,13 @@ links.Timeline.StepDate.prototype.roundToMinor = function() {
         case links.Timeline.StepDate.SCALE.HOUR:         this.current.setMinutes(0);
         case links.Timeline.StepDate.SCALE.MINUTE:       this.current.setSeconds(0);
         case links.Timeline.StepDate.SCALE.SECOND:       this.current.setMilliseconds(0);
-        //case links.Timeline.StepDate.SCALE.MILLISECOND: // nothing to do for milliseconds
+        case links.Timeline.StepDate.SCALE.MILLISECOND:  this.current.setMicroseconds(0);
     }
 
     if (this.step != 1) {
         // round down to the first minor value that is a multiple of the current step size
         switch (this.scale) {
+            case links.Timeline.StepDate.SCALE.MICROSECOND:  this.current.setMicroseconds(this.current.getMicroseconds() - this.current.getMicroseconds() % this.step);  break;
             case links.Timeline.StepDate.SCALE.MILLISECOND:  this.current.setMilliseconds(this.current.getMilliseconds() - this.current.getMilliseconds() % this.step);  break;
             case links.Timeline.StepDate.SCALE.SECOND:       this.current.setSeconds(this.current.getSeconds() - this.current.getSeconds() % this.step); break;
             case links.Timeline.StepDate.SCALE.MINUTE:       this.current.setMinutes(this.current.getMinutes() - this.current.getMinutes() % this.step); break;
@@ -6193,13 +6205,14 @@ links.Timeline.StepDate.prototype.next = function() {
     // (end of March and end of October)
     if (this.current.getMonth() < 6)   {
         switch (this.scale) {
+            case links.Timeline.StepDate.SCALE.MICROSECOND:
+                this.current = new uDate(this.current.valueOf() + this.step); break;
             case links.Timeline.StepDate.SCALE.MILLISECOND:
-
-                this.current = new Date(this.current.valueOf() + this.step); break;
-            case links.Timeline.StepDate.SCALE.SECOND:       this.current = new Date(this.current.valueOf() + this.step * 1000); break;
-            case links.Timeline.StepDate.SCALE.MINUTE:       this.current = new Date(this.current.valueOf() + this.step * 1000 * 60); break;
+                this.current = new uDate(this.current.valueOf() + this.step * 1000); break;
+            case links.Timeline.StepDate.SCALE.SECOND:       this.current = new uDate(this.current.valueOf() + this.step * 1000 * 1000); break;
+            case links.Timeline.StepDate.SCALE.MINUTE:       this.current = new uDate(this.current.valueOf() + this.step * 1000 * 1000 * 60); break;
             case links.Timeline.StepDate.SCALE.HOUR:
-                this.current = new Date(this.current.valueOf() + this.step * 1000 * 60 * 60);
+                this.current = new uDate(this.current.valueOf() + this.step * 1000 * 1000 * 60 * 60);
                 // in case of skipping an hour for daylight savings, adjust the hour again (else you get: 0h 5h 9h ... instead of 0h 4h 8h ...)
                 var h = this.current.getHours();
                 this.current.setHours(h - (h % this.step));
@@ -6213,7 +6226,8 @@ links.Timeline.StepDate.prototype.next = function() {
     }
     else {
         switch (this.scale) {
-            case links.Timeline.StepDate.SCALE.MILLISECOND:  this.current = new Date(this.current.valueOf() + this.step); break;
+            case links.Timeline.StepDate.SCALE.MICROSECOND:  this.current = new uDate(this.current.valueOf() + this.step); break;
+            case links.Timeline.StepDate.SCALE.MILLISECOND:  this.current.setMilliseconds(this.current.getMilliseconds() + this.step); break;
             case links.Timeline.StepDate.SCALE.SECOND:       this.current.setSeconds(this.current.getSeconds() + this.step); break;
             case links.Timeline.StepDate.SCALE.MINUTE:       this.current.setMinutes(this.current.getMinutes() + this.step); break;
             case links.Timeline.StepDate.SCALE.HOUR:         this.current.setHours(this.current.getHours() + this.step); break;
@@ -6228,6 +6242,7 @@ links.Timeline.StepDate.prototype.next = function() {
     if (this.step != 1) {
         // round down to the correct major value
         switch (this.scale) {
+            case links.Timeline.StepDate.SCALE.MICROSECOND:  if(this.current.getMicroseconds() < this.step) this.current.setMicroseconds(0);  break;
             case links.Timeline.StepDate.SCALE.MILLISECOND:  if(this.current.getMilliseconds() < this.step) this.current.setMilliseconds(0);  break;
             case links.Timeline.StepDate.SCALE.SECOND:       if(this.current.getSeconds() < this.step) this.current.setSeconds(0);  break;
             case links.Timeline.StepDate.SCALE.MINUTE:       if(this.current.getMinutes() < this.step) this.current.setMinutes(0);  break;
@@ -6242,7 +6257,7 @@ links.Timeline.StepDate.prototype.next = function() {
 
     // safety mechanism: if current time is still unchanged, move to the end
     if (this.current.valueOf() == prev) {
-        this.current = new Date(this._end.valueOf());
+        this.current = new uDate(this._end.valueOf());
     }
 };
 
@@ -6296,13 +6311,14 @@ links.Timeline.StepDate.prototype.setMinimumStep = function(minimumStep) {
         return;
     }
 
-    var stepYear       = (1000 * 60 * 60 * 24 * 30 * 12);
-    var stepMonth      = (1000 * 60 * 60 * 24 * 30);
-    var stepDay        = (1000 * 60 * 60 * 24);
-    var stepHour       = (1000 * 60 * 60);
-    var stepMinute     = (1000 * 60);
-    var stepSecond     = (1000);
-    var stepMillisecond= (1);
+    var stepYear       = (1000 * 1000 * 60 * 60 * 24 * 30 * 12);
+    var stepMonth      = (1000 * 1000 * 60 * 60 * 24 * 30);
+    var stepDay        = (1000 * 1000 * 60 * 60 * 24);
+    var stepHour       = (1000 * 1000 * 60 * 60);
+    var stepMinute     = (1000 * 1000 * 60);
+    var stepSecond     = (1000 * 1000);
+    var stepMillisecond= (1000);
+    var stepMicrosecond= (1);
 
     // find the smallest step that is larger than the provided minimumStep
     if (stepYear*1000 > minimumStep)        {this.scale = links.Timeline.StepDate.SCALE.YEAR;        this.step = 1000;}
@@ -6334,6 +6350,12 @@ links.Timeline.StepDate.prototype.setMinimumStep = function(minimumStep) {
     if (stepMillisecond*10 > minimumStep)   {this.scale = links.Timeline.StepDate.SCALE.MILLISECOND; this.step = 10;}
     if (stepMillisecond*5 > minimumStep)    {this.scale = links.Timeline.StepDate.SCALE.MILLISECOND; this.step = 5;}
     if (stepMillisecond > minimumStep)      {this.scale = links.Timeline.StepDate.SCALE.MILLISECOND; this.step = 1;}
+    if (stepMicrosecond*200 > minimumStep)  {this.scale = links.Timeline.StepDate.SCALE.MICROSECOND; this.step = 200;}
+    if (stepMicrosecond*100 > minimumStep)  {this.scale = links.Timeline.StepDate.SCALE.MICROSECOND; this.step = 100;}
+    if (stepMicrosecond*50 > minimumStep)   {this.scale = links.Timeline.StepDate.SCALE.MICROSECOND; this.step = 50;}
+    if (stepMicrosecond*10 > minimumStep)   {this.scale = links.Timeline.StepDate.SCALE.MICROSECOND; this.step = 10;}
+    if (stepMicrosecond*5 > minimumStep)    {this.scale = links.Timeline.StepDate.SCALE.MICROSECOND; this.step = 5;}
+    if (stepMicrosecond > minimumStep)      {this.scale = links.Timeline.StepDate.SCALE.MICROSECOND; this.step = 1;}
 };
 
 /**
@@ -6420,6 +6442,10 @@ links.Timeline.StepDate.prototype.snap = function(date) {
         var step = this.step > 5 ? this.step / 2 : 1;
         date.setMilliseconds(Math.round(date.getMilliseconds() / step) * step);
     }
+    else if (this.scale == links.Timeline.StepDate.SCALE.MICROSECOND) {
+        var step = this.step > 5 ? this.step / 2 : 1;
+        date.setMicroseconds(Math.round(date.getMicroseconds() / step) * step);
+    }
 };
 
 /**
@@ -6429,6 +6455,8 @@ links.Timeline.StepDate.prototype.snap = function(date) {
  */
 links.Timeline.StepDate.prototype.isMajor = function() {
     switch (this.scale) {
+        case links.Timeline.StepDate.SCALE.MICROSECOND:
+            return (this.current.getMicroseconds() == 0);
         case links.Timeline.StepDate.SCALE.MILLISECOND:
             return (this.current.getMilliseconds() == 0);
         case links.Timeline.StepDate.SCALE.SECOND:
@@ -6464,6 +6492,7 @@ links.Timeline.StepDate.prototype.getLabelMinor = function(options, date) {
     }
 
     switch (this.scale) {
+        case links.Timeline.StepDate.SCALE.MICROSECOND:  return String(date.getMicroseconds());
         case links.Timeline.StepDate.SCALE.MILLISECOND:  return String(date.getMilliseconds());
         case links.Timeline.StepDate.SCALE.SECOND:       return String(date.getSeconds());
         case links.Timeline.StepDate.SCALE.MINUTE:
@@ -6492,16 +6521,30 @@ links.Timeline.StepDate.prototype.getLabelMajor = function(options, date) {
     }
 
     switch (this.scale) {
+        case links.Timeline.StepDate.SCALE.MICROSECOND:
+            return  this.addZeros(date.getHours(), 2) + ":" +
+                this.addZeros(date.getMinutes(), 2) + ":" +
+                this.addZeros(date.getSeconds(), 2) + "." +
+                this.addZeros(date.getMilliseconds(), 3);
         case links.Timeline.StepDate.SCALE.MILLISECOND:
             return  this.addZeros(date.getHours(), 2) + ":" +
                 this.addZeros(date.getMinutes(), 2) + ":" +
                 this.addZeros(date.getSeconds(), 2);
         case links.Timeline.StepDate.SCALE.SECOND:
+            if (date.getFullYear() < 1980)
+                return this.addZeros(date.getHours(), 2) + ":" + this.addZeros(date.getMinutes(), 2);
             return  date.getDate() + " " +
                 options.MONTHS[date.getMonth()] + " " +
                 this.addZeros(date.getHours(), 2) + ":" +
                 this.addZeros(date.getMinutes(), 2);
         case links.Timeline.StepDate.SCALE.MINUTE:
+            /*
+             * If a years is 1970 it probably means we
+             * use usec data format and do not want to
+             * see year and month
+             */
+            if (date.getFullYear() == 1970)
+                return this.addZeros(date.getHours(), 2) + ":" + this.addZeros(date.getMinutes(), 2);
             return  options.DAYS[date.getDay()] + " " +
                 date.getDate() + " " +
                 options.MONTHS[date.getMonth()] + " " +
@@ -6968,7 +7011,7 @@ links.Timeline.clone = function (object) {
 /**
  * parse a JSON date
  * @param {Date | String | Number} date    Date object to be parsed. Can be:
- *                                         - a Date object like new Date(),
+ *                                         - a Date object like new uDate(),
  *                                         - a long like 1356970529389,
  *                                         an ISO String like "2012-12-31T16:16:07.213Z",
  *                                         or a .Net Date string like
@@ -6981,7 +7024,7 @@ links.Timeline.parseJSONDate = function (date) {
     }
 
     //test for date
-    if (date instanceof Date) {
+    if (date instanceof uDate) {
         return date;
     }
 
@@ -6994,12 +7037,12 @@ links.Timeline.parseJSONDate = function (date) {
             + (60000 * m[3] * (m[2] / Math.abs(m[2]))) // mins offset
             : 0;
 
-        return new Date(
+        return new uDate(
             (1 * m[1]) // ticks
                 + offset
         );
     }
 
     // failing that, try to parse whatever we've got.
-    return Date.parse(date);
+    return uDate.parse(date);
 };
