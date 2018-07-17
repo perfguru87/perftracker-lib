@@ -55,7 +55,7 @@ def coverage_one(lib, coverage_target):
         if coverage < coverage_target:
             print("FAILED, code coverage is %d%%, must be >= %d%%" % (coverage, coverage_target))
             print("NOTE: to debug the problem manually run:")
-            print("          coverage run %s" % os.path.join(root, lib))
+            print("          coverage run -m \"%s\"" % lib2mod(lib))
             print("          coverage report -m")
             sys.exit(-1)
         print("OK, %d%%" % coverage)
