@@ -1,0 +1,453 @@
+#!/usr/bin/env python
+
+from __future__ import print_function
+
+# -*- coding: utf-8 -*-
+__author__ = "perfguru87@gmail.com"
+__copyright__ = "Copyright 2018, The PerfTracker project"
+__license__ = "MIT"
+
+"""Python interface for timeline.js library: http://almende.github.io/chap-links-library/timeline.html
+"""
+
+import os
+import re
+import sys
+import datetime
+
+from .html import pt_html_escape
+
+try:
+    from dateutil import tz
+
+    def _to_local_tz(s):
+        try:
+            return s.astimezone(tz.tzlocal())
+        except ValueError:
+            return s
+except ImportError:
+    def _to_local_tz(s):
+        return s
+
+
+if sys.version_info >= (3, 0):
+    basestring = str
+
+
+def _unicode2str(data):
+    if isinstance(data, basestring):
+        return str(data)
+    elif isinstance(data, collections.Mapping):
+        return dict(map(_unicode2str, data.iteritems()))
+    elif isinstance(data, collections.Iterable):
+        return type(data)(map(_unicode2str, data))
+    else:
+        return data
+
+
+class ptlPhase:
+    def __init__(self, bg_color="#61b7d1", fg_color="#000", description=""):
+        self.bg_color = bg_color
+        self.fg_color = fg_color
+        self.description = description
+
+
+class ptlTaskPhase:
+    def __init__(self, width, title="", hint=""):
+        self.width = width
+        self.title = title
+        if hint == "":
+            hint = title
+        self.hint = hint
+
+
+class ptlParser:
+    r = re.compile("")
+
+    def parse(self, s):
+        m = self.r.search(s)
+        if not m:
+            return None
+        return "new uDate(%d, %d, %d, %d, %d, %d, %d)" % \
+               (int(m.group('y')), int(m.group('mo')) - 1, int(m.group('d')),
+                int(m.group('h')), int(m.group('mi')), int(m.group('s')), self.get_usec(m))
+
+
+class ptlParserDate(ptlParser):
+    r = re.compile("^(?P<y>\d+)-(?P<mo>\d\d)-(?P<d>\d\d) (?P<h>\d\d):(?P<mi>\d\d):(?P<s>\d\d)$")
+
+    def get_usec(self, match):
+        return 0
+
+
+class ptlParserDateMsec(ptlParser):
+    r = re.compile("^(?P<y>\d+)-(?P<mo>\d\d)-(?P<d>\d\d) (?P<h>\d\d):(?P<mi>\d\d):(?P<s>\d\d).(?P<ms>\d\d\d)$")
+
+    def get_usec(self, match):
+        return int(match.group['ms']) * 1000
+
+
+class ptlParserDateUsec(ptlParser):
+    r = re.compile("^(?P<y>\d+)-(?P<mo>\d\d)-(?P<d>\d\d) (?P<h>\d\d):(?P<mi>\d\d):(?P<s>\d\d).(?P<us>\d\d\d\d\d\d)$")
+
+    def get_usec(self, match):
+        return int(match.group['us'])
+
+
+class ptlParserUsec(ptlParser):
+    r = re.compile("^(\d+)$")
+
+    def parse(self, s):
+        m = self.r.search(s)
+        return "new uDate(%s)" % (m.group('us')) if m else None
+
+
+class ptlTask:
+    def __init__(self, begin, end, title="", comment="", cssClass="", group=None, hint=None, phases=None):
+        """
+        Supported ptlTask begin/end format:
+        1) YYYY-MM-DD HH:SS:MM
+        2) YYYY-MM-DD HH:SS:MM.MSEC
+        3) YYYY-MM-DD HH:SS:MM.USEC
+        4) USEC
+        """
+
+        self.begin = begin
+        self.end = end
+        self.props = {}
+
+        self._parsers = [ptlParserDate(), ptlParserDateMsec(), ptlParserDateUsec(), ptlParserUsec()]
+        self._parser = self._parsers[0]
+
+        if phases:
+            if hint:
+                s = '<div class="timeline-event-phases" title="%s">' % pt_html_escape(hint)
+
+            else:
+                s = '<div class="timeline-event-phases">'
+                for p in range(0, len(phases)):
+                    s += '<div class="timeline-event-phase%d" style="width: %d%%;" title="%s">' % \
+                         (p, phases[p].width, pt_html_escape(phases[p].hint))
+                    if phases[p].title:
+                        s += '<span>%s</span>' % phases[p].title
+                    s += '</div>'
+                s += '</div>'
+                self.props['content'] = s
+        elif title or comment:
+            if comment:
+                title += "<br><small>%s</small>" % comment
+            if hint:
+                title = '<span title="%s">%s</span>' % (pt_html_escape(hint), title)
+            self.props['content'] = title
+
+        if cssClass:
+            self.props['className'] = cssClass
+        if group:
+            self.props['group'] = group
+
+    def _str2udate(self, s):
+        if s == "":
+            return " "
+
+        if type(s) == int:
+            return "new uDate(%d)" % s
+
+        if type(s) == datetime.datetime:
+            t = _to_local_tz(s)
+            return "new uDate(%s, %s, %s, %s, %s, %s, %s)" % \
+                   (t.year, t.month - 1, t.day, t.hour, t.minute, t.second, t.microsecond)
+
+        ret = self._parser.parse(s)
+        if ret:
+            return ret  # fast path
+
+        for p in self._parsers:
+            ret = p.parse(s)
+            if ret:
+                self._parser = p
+                return ret
+
+        print("unsupported task date/time format: %s" % s, file=sys.stderr)
+        return False
+
+    def get_begin_end(self):
+        return self._str2udate(self.begin), self._str2udate(self.end)
+
+    def get_props(self, columns):
+        ar = []
+        for c in columns:
+            ar.append("'%s'" % (self.props.get(c, '')))
+        return ar
+
+
+class ptlEvent(ptlTask):
+    def __init__(self, time, title, comment="", cssClass="", group=""):
+        TlTask.__init__(self, time, "", title, comment, cssClass, group)
+
+
+TIMELINE_ID = 0
+
+
+class ptlTimeline:
+    def __init__(self, title, width="100%", height="auto", begin=None, end=None, js_opts=None):
+
+        global TIMELINE_ID
+        self.tasks = []
+        self.title = title
+        self.width = width
+        self.height = height
+
+        self.begin = begin
+        self.end = end
+
+        self.js_opts = {'axisOnTop': 'true',
+                        'showNavigation': 'true'}
+        if js_opts:
+            self.js_opts = js_opts
+
+        self.columns = []
+
+        self.id = TIMELINE_ID
+        TIMELINE_ID += 1
+
+    def add_task(self, task):
+        assert isinstance(task, ptlTask)
+        for key, val in task.props.items():
+            if key not in self.columns:
+                self.columns.append(key)
+        self.tasks.append(task)
+
+    def gen_js(self):
+
+        s = "var vis%d;\n" % self.id
+
+        s += """
+             var dt%d = new google.visualization.DataTable();
+             function createTimeline%d() {
+                 // Create and populate a data table.
+                 dt%d.addColumn('datetime', 'start');
+                 dt%d.addColumn('datetime', 'end');
+             """ % (self.id, self.id, self.id, self.id)
+
+        for c in self.columns:
+            s += "dt%d.addColumn('%s', '%s');\n" % (self.id, 'string', c)
+
+        if len(self.tasks):
+            s += "dt%d.addRows([" % self.id
+
+            for t in self.tasks:
+                b, e = t.get_begin_end()
+                s += "[%s],\n" % (', '.join([b, e] + t.get_props(self.columns)))
+
+            s += "]);\n"
+
+        s += "options = {width: '%s', height: '%s', " % (self.width, self.height)
+        s += "layout: 'box', cluster: true, snapEvents: true, eventMargin: 0, eventMarginAxis: 4,"
+
+        if self.begin and self.end:
+            s += "start: '%s', end: '%s'" % (self.begin, self.end)
+
+        for key, val in self.js_opts.items():
+            s += "%s: %s," % (key, _unicode2str(val))
+
+        s += """
+             };
+             vis%d = new links.Timeline(document.getElementById('timeline%d'));
+             google.visualization.events.addListener(vis%d, 'rangechange', onrangechange%d);
+             vis%d.draw(dt%d, options);
+             """ % (self.id, self.id, self.id, self.id, self.id, self.id)
+
+        s += "}"
+        return s
+
+    def gen_html(self):
+        return "<h3>%s</h3><div id='timeline%d'></div>" % (self.title, self.id)
+
+
+class ptlSection:
+    def __init__(self, title=None, autofit=False):
+        self.title = title
+        self.autofit = autofit
+        self.timelines = []
+        self.phases = []
+
+    def add_phase(self, phase):
+        assert isinstance(phase, ptlPhase)
+        self.phases.append(phase)
+        return phase
+
+    def add_timeline(self, timeline):
+        assert isinstance(timeline, ptlTimeline)
+        self.timelines.append(timeline)
+        return timeline
+
+    def gen_title(self):
+        return ("<h1>%s</h1>" % self.title) if self.title else ""
+
+    def gen_html(self):
+        s = ""
+        if len(self.phases):
+            s += "<style type=\"text/css\">\n"
+            for p in range(0, len(self.phases)):
+                s += ".timeline-event-phase%d { background-color: %s !important; color: %s !important; }\n" % \
+                     (p, self.phases[p].bg_color, self.phases[p].fg_color)
+            s += "</style>\n"
+
+        s += """
+            <script type="text/javascript">
+            google.load("visualization", "1", {packages:['table']});
+
+            // Set callback to run when API is loaded
+            google.setOnLoadCallback(drawVisualization);
+            """
+
+        for t in self.timelines:
+            s += t.gen_js()
+
+        s += """
+            function drawVisualization() {
+                var start = undefined, end = undefined;
+            """
+
+        for t in self.timelines:
+            s += """
+                 createTimeline%d();
+
+                 var range = vis%d.getVisibleChartRange();
+                 if (!start || start > range.start)
+                     start = range.start;
+                 if (!end || end < range.end)
+                     end = range.end;
+                 """ % (t.id, t.id)
+
+        if self.autofit:
+            for t in self.timelines:
+                s += "vis%d.setVisibleChartRange(start, end);\n" % t.id
+        else:
+            for t in self.timelines:
+                s += "onrangechange%d();\n" % t.id
+
+        s += "}"
+
+        for t in self.timelines:
+            s += """
+                 function onrangechange%d() {
+                     var range = vis%d.getVisibleChartRange();
+                 """ % (t.id, t.id)
+
+            for _t in self.timelines:
+                if _t.id == t.id:
+                    continue
+                s += "vis%d.setVisibleChartRange(range.start, range.end);\n" % _t.id
+
+            s += "}\n"
+
+        s += "</script>"
+
+        for t in self.timelines:
+            s += t.gen_html()
+
+        if len(self.phases):
+            s += "<table style='margin-top: 5px; float:right;'>"
+            s += "<tr style='font-size: 10px;'>"
+            s += "<td><b>Tasks phases:</b></td>"
+            for p in range(0, len(self.phases)):
+                s += """
+                     <td style='padding: 1px 1px 1px 10px;'>
+                         <div class='timeline-event'>
+                             <div class='timeline-event-phase timeline-event-phase%d'>&nbsp;</div>
+                         </div>
+                     </td>
+                     <td style='padding: 1px 0px 1px 5px;'>%s</td>
+                     """ % (p, self.phases[p].description)
+            s += "</tr></table>"
+
+        return s
+
+
+class ptlDoc:
+    def __init__(self, title=None, header=None, footer=None):
+        self.sections = []
+        self.footer = footer if footer else "</body></html>"
+        if header:
+            self.header = header
+        else:
+            self.header = "<html><head><meta http-equiv='content-type' content='text/html; charset=utf-8'>"
+            if title:
+                self.header += "<title>%s</title>" % title
+            self.header += "</head>"
+        self.header += self._embed(["jsapi.js", "udate.js", "timeline.js", "formatendefault.js"])
+        self.header += self._embed(["timeline.css", "table.css"])
+        self.header += "<body>"
+        self.header += "<style type='text/css'>body {font: 9pt arial;}</style>"
+
+    def add_section(self, section):
+        assert isinstance(section, ptlSection)
+        self.sections.append(section)
+        return section
+
+    def _embed(self, files):
+        ret = ""
+        for f in files:
+            p = os.path.join(os.path.abspath(os.path.dirname(__file__)), "timeline", f)
+            try:
+                f = open(p)
+            except IOError:
+                print("Can't open file: %s" % p, file=sys.stderr)
+                continue
+
+            body = f.read()
+            f.close()
+
+            if p.endswith(".js"):
+                ret += "<script type='text/javascript'>%s</script>" % body
+            elif p.endswith(".css"):
+                ret += "<style type='text/css'>%s</style>" % body
+        return ret
+
+    def gen_html(self):
+        ret = self.header
+        for s in self.sections:
+            ret += s.gen_html()
+        ret += self.footer
+        return ret
+
+
+##############################################################################
+# Autotests
+##############################################################################
+
+if __name__ == "__main__":
+    d = ptlDoc()
+    s = d.add_section(ptlSection())
+
+    t = s.add_timeline(ptlTimeline("Timeline#1"))
+    t.add_task(ptlTask("2018-05-05 01:00:01", "2018-05-05 02:03:04", "Task#1", "Task comments 1"))
+    t.add_task(ptlTask("2018-05-05 01:15:25", "2018-05-05 01:18:26", "Task#2", "Task comments 2"))
+    t.add_task(ptlTask("2018-05-05 02:03:04", "2018-05-05 05:06:07", "Task#3"))
+
+    t = s.add_timeline(ptlTimeline("Timeline#2 (with phases)"))
+    s.add_phase(ptlPhase("#444", "#eee", "Phase#1"))
+    s.add_phase(ptlPhase("#555", "#eee", "Phase#2"))
+    s.add_phase(ptlPhase("#777", "#fff", "Phase#3"))
+
+    t.add_task(ptlTask("2018-05-05 01:00:01", "2018-05-05 02:03:04", "Task#1", "Task comments 1", group="group#1",
+                       phases=[ptlTaskPhase(25, "some phase#1"),
+                               ptlTaskPhase(35, "some phase#2"),
+                               ptlTaskPhase(40, "some phase#3"),
+                               ]
+                       ))
+    t.add_task(ptlTask("2018-05-05 02:00:30", "2018-05-05 02:20:00", "Task#2", "Task comments 2", group="group#1",
+                       phases=[ptlTaskPhase(5),
+                               ptlTaskPhase(10),
+                               ptlTaskPhase(85, "some phase#3"),
+                               ]
+                       ))
+    t.add_task(ptlTask("2018-05-05 02:20:30", "2018-05-05 02:30:00", "Task#3", "Task comments 3", group="group#2",
+                       phases=[ptlTaskPhase(10, "some phase#1"),
+                               ptlTaskPhase(20, "some phase#2"),
+                               ptlTaskPhase(70, "some phase#3"),
+                               ]
+                       ))
+
+    print(d.gen_html())
