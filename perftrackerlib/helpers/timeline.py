@@ -84,18 +84,18 @@ class ptlParserDateMsec(ptlParser):
     r = re.compile("^(?P<y>\d+)-(?P<mo>\d\d)-(?P<d>\d\d) (?P<h>\d\d):(?P<mi>\d\d):(?P<s>\d\d).(?P<ms>\d\d\d)$")
 
     def get_usec(self, match):
-        return int(match.group['ms']) * 1000
+        return int(match.group('ms')) * 1000
 
 
 class ptlParserDateUsec(ptlParser):
     r = re.compile("^(?P<y>\d+)-(?P<mo>\d\d)-(?P<d>\d\d) (?P<h>\d\d):(?P<mi>\d\d):(?P<s>\d\d).(?P<us>\d\d\d\d\d\d)$")
 
     def get_usec(self, match):
-        return int(match.group['us'])
+        return int(match.group('us'))
 
 
 class ptlParserUsec(ptlParser):
-    r = re.compile("^(\d+)$")
+    r = re.compile("^(?P<us>\d+)$")
 
     def parse(self, s):
         m = self.r.search(s)
@@ -418,7 +418,7 @@ class ptlDoc:
 ##############################################################################
 
 if __name__ == "__main__":
-    d = ptlDoc()
+    d = ptlDoc(title='timeline.py examples')
     s = d.add_section(ptlSection())
 
     t = s.add_timeline(ptlTimeline("Timeline#1"))
@@ -449,5 +449,17 @@ if __name__ == "__main__":
                                ptlTaskPhase(70, "some phase#3"),
                                ]
                        ))
+    t.add_task(ptlTask("2018-05-05 02:24:31.123", "2018-05-05 02:24:45.123456", "Task#3", group="group#3",
+                       phases=[ptlTaskPhase(10, "some phase#1"),
+                               ptlTaskPhase(20, "some phase#2"),
+                               ptlTaskPhase(70, "some phase#3"),
+                               ]
+                       ))
+
+    s = d.add_section(ptlSection())
+    t = s.add_timeline(ptlTimeline("Timeline#3"))
+    t.add_task(ptlTask("100", "190", "Task#1"))
+    t.add_task(ptlTask(95, 159, "Task#2"))
+    t.add_task(ptlTask(125, 210, "Task#3"))
 
     print(d.gen_html())
