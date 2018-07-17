@@ -11,7 +11,7 @@ from execute import execute
 libs = [("perftrackerlib/helpers/timeparser.py", 98),
         ("perftrackerlib/helpers/timeline.py", 89),
         ("perftrackerlib/helpers/largelogfile.py", 98),
-        ("perftrackerlib/helpers/httppool.py", 35),
+        ("perftrackerlib/helpers/httppool.py", 34),
         ("perftrackerlib/helpers/texttable.py", 82),
         ("perftrackerlib/helpers/timehelpers.py", 100),
         ("perftrackerlib/helpers/textparser.py", 100),
