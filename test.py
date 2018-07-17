@@ -9,7 +9,7 @@ sys.path.append(root)
 from execute import execute
 
 libs = [("perftrackerlib/helpers/timeparser.py", 98),
-        ("perftrackerlib/helpers/timeline.py", 85),
+        ("perftrackerlib/helpers/timeline.py", 89),
         ("perftrackerlib/helpers/largelogfile.py", 98),
         ("perftrackerlib/helpers/httppool.py", 35),
         ("perftrackerlib/helpers/texttable.py", 82),
