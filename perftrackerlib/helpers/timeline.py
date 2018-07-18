@@ -376,9 +376,9 @@ class ptDoc:
             if title:
                 self.header += "<title>%s</title>" % title
             self.header += "</head>"
+            self.header += "<body>"
         self.header += self._embed(["jsapi.js", "udate.js", "timeline.js", "formatendefault.js"])
         self.header += self._embed(["timeline.css", "table.css"])
-        self.header += "<body>"
         self.header += "<style type='text/css'>body {font: 9pt arial;}</style>"
 
     def add_section(self, section):
