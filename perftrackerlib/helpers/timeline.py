@@ -189,7 +189,7 @@ TIMELINE_ID = 0
 
 
 class ptTimeline:
-    def __init__(self, title, width="100%", height="auto", begin=None, end=None, js_opts=None):
+    def __init__(self, title=None, width="100%", height="auto", begin=None, end=None, js_opts=None):
 
         global TIMELINE_ID
         self.tasks = []
@@ -261,7 +261,10 @@ class ptTimeline:
         return s
 
     def gen_html(self):
-        return "<h3>%s</h3><div id='timeline%d'></div>" % (self.title, self.id)
+        ret = "<div id='timeline%d'></div>" % self.id
+        if self.title:
+            ret = "<h3>%s</h3>%s" % (self.title, ret)
+        return ret
 
 
 class ptSection:
