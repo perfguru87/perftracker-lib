@@ -89,4 +89,7 @@ setup(
     #    package_data={
     #        'sample': ['package_data.dat'],
     #    },
+    package_data={
+        '': ['*.js', '*.css'],
+    },
 )
