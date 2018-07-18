@@ -45,14 +45,14 @@ def _unicode2str(data):
         return data
 
 
-class ptlPhase:
+class ptPhase:
     def __init__(self, bg_color="#61b7d1", fg_color="#000", description=""):
         self.bg_color = bg_color
         self.fg_color = fg_color
         self.description = description
 
 
-class ptlTaskPhase:
+class ptTaskPhase:
     def __init__(self, width, title="", hint=""):
         self.width = width
         self.title = title
@@ -61,7 +61,7 @@ class ptlTaskPhase:
         self.hint = hint
 
 
-class ptlParser:
+class ptParser:
     r = re.compile("")
 
     def parse(self, s):
@@ -73,28 +73,28 @@ class ptlParser:
                 int(m.group('h')), int(m.group('mi')), int(m.group('s')), self.get_usec(m))
 
 
-class ptlParserDate(ptlParser):
+class ptParserDate(ptParser):
     r = re.compile("^(?P<y>\d+)-(?P<mo>\d\d)-(?P<d>\d\d) (?P<h>\d\d):(?P<mi>\d\d):(?P<s>\d\d)$")
 
     def get_usec(self, match):
         return 0
 
 
-class ptlParserDateMsec(ptlParser):
+class ptParserDateMsec(ptParser):
     r = re.compile("^(?P<y>\d+)-(?P<mo>\d\d)-(?P<d>\d\d) (?P<h>\d\d):(?P<mi>\d\d):(?P<s>\d\d).(?P<ms>\d\d\d)$")
 
     def get_usec(self, match):
         return int(match.group('ms')) * 1000
 
 
-class ptlParserDateUsec(ptlParser):
+class ptParserDateUsec(ptParser):
     r = re.compile("^(?P<y>\d+)-(?P<mo>\d\d)-(?P<d>\d\d) (?P<h>\d\d):(?P<mi>\d\d):(?P<s>\d\d).(?P<us>\d\d\d\d\d\d)$")
 
     def get_usec(self, match):
         return int(match.group('us'))
 
 
-class ptlParserUsec(ptlParser):
+class ptParserUsec(ptParser):
     r = re.compile("^(?P<us>\d+)$")
 
     def parse(self, s):
@@ -102,10 +102,10 @@ class ptlParserUsec(ptlParser):
         return "new uDate(%s)" % (m.group('us')) if m else None
 
 
-class ptlTask:
+class ptTask:
     def __init__(self, begin, end, title="", comment="", cssClass="", group=None, hint=None, phases=None):
         """
-        Supported ptlTask begin/end format:
+        Supported ptTask begin/end format:
         1) YYYY-MM-DD HH:SS:MM
         2) YYYY-MM-DD HH:SS:MM.MSEC
         3) YYYY-MM-DD HH:SS:MM.USEC
@@ -116,7 +116,7 @@ class ptlTask:
         self.end = end
         self.props = {}
 
-        self._parsers = [ptlParserDate(), ptlParserDateMsec(), ptlParserDateUsec(), ptlParserUsec()]
+        self._parsers = [ptParserDate(), ptParserDateMsec(), ptParserDateUsec(), ptParserUsec()]
         self._parser = self._parsers[0]
 
         if phases:
@@ -180,7 +180,7 @@ class ptlTask:
         return ar
 
 
-class ptlEvent(ptlTask):
+class ptEvent(ptTask):
     def __init__(self, time, title, comment="", cssClass="", group=""):
         TlTask.__init__(self, time, "", title, comment, cssClass, group)
 
@@ -188,7 +188,7 @@ class ptlEvent(ptlTask):
 TIMELINE_ID = 0
 
 
-class ptlTimeline:
+class ptTimeline:
     def __init__(self, title, width="100%", height="auto", begin=None, end=None, js_opts=None):
 
         global TIMELINE_ID
@@ -211,7 +211,7 @@ class ptlTimeline:
         TIMELINE_ID += 1
 
     def add_task(self, task):
-        assert isinstance(task, ptlTask)
+        assert isinstance(task, ptTask)
         for key, val in task.props.items():
             if key not in self.columns:
                 self.columns.append(key)
@@ -264,7 +264,7 @@ class ptlTimeline:
         return "<h3>%s</h3><div id='timeline%d'></div>" % (self.title, self.id)
 
 
-class ptlSection:
+class ptSection:
     def __init__(self, title=None, autofit=False):
         self.title = title
         self.autofit = autofit
@@ -272,12 +272,12 @@ class ptlSection:
         self.phases = []
 
     def add_phase(self, phase):
-        assert isinstance(phase, ptlPhase)
+        assert isinstance(phase, ptPhase)
         self.phases.append(phase)
         return phase
 
     def add_timeline(self, timeline):
-        assert isinstance(timeline, ptlTimeline)
+        assert isinstance(timeline, ptTimeline)
         self.timelines.append(timeline)
         return timeline
 
@@ -365,7 +365,7 @@ class ptlSection:
         return s
 
 
-class ptlDoc:
+class ptDoc:
     def __init__(self, title=None, header=None, footer=None):
         self.sections = []
         self.footer = footer if footer else "</body></html>"
@@ -382,7 +382,7 @@ class ptlDoc:
         self.header += "<style type='text/css'>body {font: 9pt arial;}</style>"
 
     def add_section(self, section):
-        assert isinstance(section, ptlSection)
+        assert isinstance(section, ptSection)
         self.sections.append(section)
         return section
 
@@ -418,48 +418,48 @@ class ptlDoc:
 ##############################################################################
 
 if __name__ == "__main__":
-    d = ptlDoc(title='timeline.py examples')
-    s = d.add_section(ptlSection())
+    d = ptDoc(title='timeline.py examples')
+    s = d.add_section(ptSection())
 
-    t = s.add_timeline(ptlTimeline("Timeline#1"))
-    t.add_task(ptlTask("2018-05-05 01:00:01", "2018-05-05 02:03:04", "Task#1", "Task comments 1"))
-    t.add_task(ptlTask("2018-05-05 01:15:25", "2018-05-05 01:18:26", "Task#2", "Task comments 2"))
-    t.add_task(ptlTask("2018-05-05 02:03:04", "2018-05-05 05:06:07", "Task#3"))
+    t = s.add_timeline(ptTimeline("Timeline#1"))
+    t.add_task(ptTask("2018-05-05 01:00:01", "2018-05-05 02:03:04", "Task#1", "Task comments 1"))
+    t.add_task(ptTask("2018-05-05 01:15:25", "2018-05-05 01:18:26", "Task#2", "Task comments 2"))
+    t.add_task(ptTask("2018-05-05 02:03:04", "2018-05-05 05:06:07", "Task#3"))
 
-    t = s.add_timeline(ptlTimeline("Timeline#2 (with phases)"))
-    s.add_phase(ptlPhase("#444", "#eee", "Phase#1"))
-    s.add_phase(ptlPhase("#555", "#eee", "Phase#2"))
-    s.add_phase(ptlPhase("#777", "#fff", "Phase#3"))
+    t = s.add_timeline(ptTimeline("Timeline#2 (with phases)"))
+    s.add_phase(ptPhase("#444", "#eee", "Phase#1"))
+    s.add_phase(ptPhase("#555", "#eee", "Phase#2"))
+    s.add_phase(ptPhase("#777", "#fff", "Phase#3"))
 
-    t.add_task(ptlTask("2018-05-05 01:00:01", "2018-05-05 02:03:04", "Task#1", "Task comments 1", group="group#1",
-                       phases=[ptlTaskPhase(25, "some phase#1"),
-                               ptlTaskPhase(35, "some phase#2"),
-                               ptlTaskPhase(40, "some phase#3"),
-                               ]
-                       ))
-    t.add_task(ptlTask("2018-05-05 02:00:30", "2018-05-05 02:20:00", "Task#2", "Task comments 2", group="group#1",
-                       phases=[ptlTaskPhase(5),
-                               ptlTaskPhase(10),
-                               ptlTaskPhase(85, "some phase#3"),
-                               ]
-                       ))
-    t.add_task(ptlTask("2018-05-05 02:20:30", "2018-05-05 02:30:00", "Task#3", "Task comments 3", group="group#2",
-                       phases=[ptlTaskPhase(10, "some phase#1"),
-                               ptlTaskPhase(20, "some phase#2"),
-                               ptlTaskPhase(70, "some phase#3"),
-                               ]
-                       ))
-    t.add_task(ptlTask("2018-05-05 02:24:31.123", "2018-05-05 02:24:45.123456", "Task#3", group="group#3",
-                       phases=[ptlTaskPhase(10, "some phase#1"),
-                               ptlTaskPhase(20, "some phase#2"),
-                               ptlTaskPhase(70, "some phase#3"),
-                               ]
-                       ))
+    t.add_task(ptTask("2018-05-05 01:00:01", "2018-05-05 02:03:04", "Task#1", "Task comments 1", group="group#1",
+                      phases=[ptTaskPhase(25, "some phase#1"),
+                              ptTaskPhase(35, "some phase#2"),
+                              ptTaskPhase(40, "some phase#3"),
+                              ]
+                      ))
+    t.add_task(ptTask("2018-05-05 02:00:30", "2018-05-05 02:20:00", "Task#2", "Task comments 2", group="group#1",
+                      phases=[ptTaskPhase(5),
+                              ptTaskPhase(10),
+                              ptTaskPhase(85, "some phase#3"),
+                              ]
+                      ))
+    t.add_task(ptTask("2018-05-05 02:20:30", "2018-05-05 02:30:00", "Task#3", "Task comments 3", group="group#2",
+                      phases=[ptTaskPhase(10, "some phase#1"),
+                              ptTaskPhase(20, "some phase#2"),
+                              ptTaskPhase(70, "some phase#3"),
+                              ]
+                      ))
+    t.add_task(ptTask("2018-05-05 02:24:31.123", "2018-05-05 02:24:45.123456", "Task#3", group="group#3",
+                      phases=[ptTaskPhase(10, "some phase#1"),
+                              ptTaskPhase(20, "some phase#2"),
+                              ptTaskPhase(70, "some phase#3"),
+                              ]
+                      ))
 
-    s = d.add_section(ptlSection())
-    t = s.add_timeline(ptlTimeline("Timeline#3"))
-    t.add_task(ptlTask("100", "190", "Task#1"))
-    t.add_task(ptlTask(95, 159, "Task#2"))
-    t.add_task(ptlTask(125, 210, "Task#3"))
+    s = d.add_section(ptSection())
+    t = s.add_timeline(ptTimeline("Timeline#3"))
+    t.add_task(ptTask("100", "190", "Task#1"))
+    t.add_task(ptTask(95, 159, "Task#2"))
+    t.add_task(ptTask(125, 210, "Task#3"))
 
     print(d.gen_html())
