@@ -252,9 +252,9 @@ class ptTimeline:
 
         s += """
              };
-             vis%d = new links.Timeline(document.getElementById('timeline%d'));
+             vis%d = new links.Timeline(document.getElementById('timeline%d'), options);
              google.visualization.events.addListener(vis%d, 'rangechange', onrangechange%d);
-             vis%d.draw(dt%d, options);
+             vis%d.draw(dt%d);
              """ % (self.id, self.id, self.id, self.id, self.id, self.id)
 
         s += "}"
