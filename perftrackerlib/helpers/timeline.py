@@ -245,7 +245,7 @@ class ptTimeline:
         s += "layout: 'box', cluster: true, snapEvents: true, eventMargin: 0, eventMarginAxis: 4,"
 
         if self.begin and self.end:
-            s += "start: '%s', end: '%s'" % (self.begin, self.end)
+            s += "start: '%s', end: '%s', " % (self.begin, self.end)
 
         for key, val in self.js_opts.items():
             s += "%s: %s," % (key, _unicode2str(val))
