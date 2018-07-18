@@ -822,6 +822,12 @@ links.Timeline.prototype.getDataRange = function (withMargin) {
         min = undefined, // number
         max = undefined; // number
 
+    if (this.start && this.end)
+        return {
+            'min': new uDate(this.start.valueOf()),
+            'max': new uDate(this.end.valueOf()),
+        };
+
     if (items) {
         for (var i = 0, iMax = items.length; i < iMax; i++) {
             var item = items[i],
