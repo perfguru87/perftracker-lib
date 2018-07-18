@@ -90,6 +90,6 @@ setup(
     #        'sample': ['package_data.dat'],
     #    },
     package_data={
-        '': ['*.js', '*.css'],
+        '': ['helpers/timeline/*.js', 'helpers/timeline/*.css'],
     },
 )
