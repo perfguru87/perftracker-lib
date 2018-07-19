@@ -189,7 +189,7 @@ TIMELINE_ID = 0
 
 
 class ptTimeline:
-    def __init__(self, title=None, width="100%", height="auto", begin=None, end=None, js_opts=None):
+    def __init__(self, title=None, width="100%", height="auto", begin=None, end=None, js_opts=None, groups_title=None):
 
         global TIMELINE_ID
         self.tasks = []
@@ -200,10 +200,12 @@ class ptTimeline:
         self.begin = begin
         self.end = end
 
-        self.js_opts = {'axisOnTop': 'true',
-                        'showNavigation': 'true'}
         if js_opts:
             self.js_opts = js_opts
+        else:
+            self.js_opts = {'axisOnTop': 'true', 'showNavigation': 'true'}
+        if groups_title:
+            self.js_opts['groupsTitle'] = "'%s'" % groups_title
 
         self.columns = []
 
@@ -429,7 +431,7 @@ if __name__ == "__main__":
     t.add_task(ptTask("2018-05-05 01:15:25", "2018-05-05 01:18:26", "Task#2", "Task comments 2"))
     t.add_task(ptTask("2018-05-05 02:03:04", "2018-05-05 05:06:07", "Task#3"))
 
-    t = s.add_timeline(ptTimeline("Timeline#2 (with phases)"))
+    t = s.add_timeline(ptTimeline("Timeline#2 (with phases)", groups_title="Groups"))
     s.add_phase(ptPhase("#444", "#eee", "Phase#1"))
     s.add_phase(ptPhase("#555", "#eee", "Phase#2"))
     s.add_phase(ptPhase("#777", "#fff", "Phase#3"))
