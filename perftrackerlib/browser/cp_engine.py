@@ -103,7 +103,7 @@ class CPMenuItem:
 
 
 class CPLoginForm:
-    def __init__(self, user_tags=None, user_ids=None, pass_tags=None, pass_ids=None, sbmt_tags=None, sbmt_ids=None):
+    def __init__(self, user_tags=None, user_ids=None, pass_tags=None, pass_ids=None, sbmt_tags=None, sbmt_ids=None, sbmt_xpath=None):
 
         def _capitalize_list(tags):
             ret = [k for k in tags]
@@ -133,6 +133,9 @@ class CPLoginForm:
         self.pass_ids = pass_ids
         self.sbmt_tags = sbmt_tags
         self.sbmt_ids = sbmt_ids
+        self.sbmt_xpath = sbmt_xpath if sbmt_xpath else []
+
+        assert isinstance(self.sbmt_xpath, list)
 
 
 class CPEngineBase:

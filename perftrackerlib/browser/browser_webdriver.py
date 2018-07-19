@@ -350,6 +350,12 @@ class BrowserWebdriver(BrowserBase):
         except NoSuchElementException as e:
             raise BrowserExc(e)
 
+    def dom_find_element_by_xpath(self, xpath):
+        try:
+            return self.driver.find_element_by_xpath(xpath)
+        except NoSuchElementException as e:
+            raise BrowserExc(e)
+
     def dom_find_frames(self):
         frames = []
         for name in ("frame", "iframe"):
@@ -457,6 +463,21 @@ class BrowserWebdriver(BrowserBase):
 
                 try:
                     el = self.dom_find_element_by_id(id)
+                except BrowserExc:
+                    self.log_info("Login succeed")
+                    return True
+
+            except BrowserExc as e:
+                pass
+
+        for x in login_form.sbmt_xpath:
+            try:
+                el = self.dom_find_element_by_xpath(x)
+                submit_form_found = True
+                self.dom_click(el, name=id, timeout_s=timeout_s)
+
+                try:
+                    el = self.dom_find_element_by_xpath(x)
                 except BrowserExc:
                     self.log_info("Login succeed")
                     return True
