@@ -421,7 +421,7 @@ class BrowserWebdriver(BrowserBase):
             except BrowserExc as e:
                 pass
 
-        self.log_error("Couldn't find %s input field" % title)
+        self.log_info("Couldn't find %s input field" % title)
         return False
 
     def _do_login(self, url, user, password, login_form, timeout_s=None):
@@ -486,7 +486,7 @@ class BrowserWebdriver(BrowserBase):
                 pass
 
         if not submit_form_found:
-            self.log_error("Couldn't find login submit form")
+            self.log_info("Couldn't find login submit form")
 
         self.log_info("Login failed")
         return False
@@ -503,7 +503,7 @@ class BrowserWebdriver(BrowserBase):
             if self._do_login(url, user, password, login_form, timeout_s=timeout_s):
                 return True
 
-        self.log_error("Login to '%s' under user '%s' has been failed" % (url, user))
+        self.log_info("Login to '%s' under user '%s' has been failed" % (url, user))
         return False
 
 
