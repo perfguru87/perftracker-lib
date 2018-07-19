@@ -179,7 +179,7 @@ links.Timeline = function(container, options) {
         'width': "100%",
         'height': "auto",
         'minHeight': 0,        // minimal height in pixels
-        'groupMinHeight': 0,
+        'groupMinHeight': 25,
         'autoHeight': true,
 
         'eventMargin': 10,     // minimal margin between events
