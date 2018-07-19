@@ -313,6 +313,7 @@ class CPEngineBase:
 
                 if not link:
                     link = link_el.get_attribute('innerHTML').strip()
+                    link = remove_html_tags(link)
                     if "/" not in link and "#" not in link:
                         link = self.browser.browser_get_current_url()
 
