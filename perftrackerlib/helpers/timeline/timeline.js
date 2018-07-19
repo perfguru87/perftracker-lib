@@ -208,6 +208,7 @@ links.Timeline = function(container, options) {
         'showButtonNew': false,
         'groupsOnRight': false,
         'groupsOrder' : true,
+        'groupsTitle' : undefined,
         'axisOnTop': false,
         'stackEvents': true,
         'animate': true,
@@ -1892,6 +1893,17 @@ links.Timeline.prototype.repaintGroups = function() {
 
         dom.frame.appendChild(frame);
         dom.groups.frame = frame;
+
+        if (options.groupsTitle != undefined) {
+            var title = document.createElement("div");
+            title.className = "timeline-groups-title";
+            title.style.position = "absolute";
+            title.style.overflow = "hidden";
+            title.style.top = "5px";
+            title.style.left = size.groupsLeft + "px";
+            title.innerHTML = options.groupsTitle;
+            frame.appendChild(title);
+        }
     }
 
     frame.style.left = size.groupsLeft + "px";
