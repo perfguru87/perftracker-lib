@@ -159,6 +159,7 @@ class CPBrowserRunner:
         return None
 
     def _login(self, url, wait_completion=True):
+        self.browser.navigate_to(url, cached=False)
         for cp in self.cp_engines:
             self.browser.log_info("Trying to login into: %s ..." % cp.type)
             c = cp(self.browser, self.user, self.opts.password)
