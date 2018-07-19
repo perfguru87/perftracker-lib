@@ -53,6 +53,7 @@ div.timeline-event {
     box-sizing: border-box;
     color: #fff;
     display: inline-block;
+    margin-top: 4px;
 }
 
 div.timeline-event-selected {
@@ -141,6 +142,7 @@ div.timeline-event-range {
 div.timeline-event-content div.timeline-event-phases div, div.timeline-event-content {
     margin: 0px !important;
     height: 16px !important;
+    line-height: 16px;
 }
 
 div.timeline-event-content div.timeline-event-phases div span {
