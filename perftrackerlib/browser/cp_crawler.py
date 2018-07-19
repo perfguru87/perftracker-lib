@@ -143,6 +143,7 @@ class CPBrowserRunner:
 
     def _detect_cp_type(self):
         for cp in self.cp_engines:
+            self.browser.log_info("Trying to recognize: %s ..." % cp.type)
             c = cp(self.browser, self.user, self.opts.password)
             if not c.cp_init_context():
                 continue
@@ -151,7 +152,7 @@ class CPBrowserRunner:
             for cpmx in c.menu_xpaths[0]:
                 c.switch_to_frame(cpmx.frame, verbose=False)
                 if self.browser.driver.find_elements_by_xpath(cpmx.link_xpath):
-                    logging.info("%s control panel detected" % c.type)
+                    self.browser.log_info("%s control panel detected" % c.type)
                     c.switch_to_default_content()
                     return c
                 c.switch_to_default_content()
@@ -159,6 +160,7 @@ class CPBrowserRunner:
 
     def _login(self, url, wait_completion=True):
         for cp in self.cp_engines:
+            self.browser.log_info("Trying to login into: %s ..." % cp.type)
             c = cp(self.browser, self.user, self.opts.password)
             if not c.cp_init_context():
                 continue
