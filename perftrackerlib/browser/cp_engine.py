@@ -188,6 +188,9 @@ class CPEngineBase:
     def cp_get_menu_item_title(self, title_el):
         return remove_html_tags(title_el.get_attribute("innerHTML"))
 
+    def cp_get_menu_item_link_url(self, link_el):
+        return ""
+
     def cp_skip_menu_item(self, link_el, title, url):
         return not link_el.is_displayed()
 
@@ -300,51 +303,56 @@ class CPEngineBase:
             i = 0
             while i < len(menu_elements):
                 link_el = menu_elements[i]
-                try:
-                    link = link_el.get_attribute('href')
-                except StaleElementReferenceException:
-                    # previous click caused dom change, so re-load menu items (assuming their sequence is preserved)
-                    menu_elements = self.browser.driver.find_elements_by_xpath(x.link_xpath)
-                    if i >= len(menu_elements):
-                        continue  # menu has shrunk suddenly
-                    link_el = menu_elements[i]
-                    link = link_el.get_attribute('href')
-                i += 1
 
-                if not link:
-                    link = link_el.get_attribute('innerHTML').strip()
-                    link = remove_html_tags(link)
-                    if "/" not in link and "#" not in link:
-                        link = self.browser.browser_get_current_url()
+                link_url = self.cp_get_menu_item_link_url(link_el)
 
-                self.log_info("found menu item element: '%s'" % link)
+                if not link_url:
+                    try:
+                        link_url = link_el.get_attribute('href')
+                    except StaleElementReferenceException:
+                        # previous click caused dom change, so re-load menu items (assuming their sequence is preserved)
+                        menu_elements = self.browser.driver.find_elements_by_xpath(x.link_xpath)
+                        if i >= len(menu_elements):
+                            continue  # menu has shrunk suddenly
+                        link_el = menu_elements[i]
+                        link_url = link_el.get_attribute('href')
+                    i += 1
+
+                if not link_url:
+                    link_url = link_el.get_attribute('innerHTML').strip()
+                    link_url = remove_html_tags(link_url)
+                    if "/" not in link_url and "#" not in link_url:
+                        link_url = ""  # the link is not known at the moment, can't do nothing
 
                 if x.title_xpath:
                     title_els = link_el.find_elements_by_xpath(x.title_xpath)
                     if not title_els or not len(title_els) or not title_els[0].get_attribute("innerHTML"):
                         self.log_error("WARNING: can't get title for menu element: %s\nusing: %s" %
-                                       (link, x.title_xpath))
+                                       (link_url, x.title_xpath))
                         continue
                     title_el = title_els[0]
                 else:
                     title_el = link_el
 
                 title = self.cp_get_menu_item_title(title_el)
+
+                msg = "menu item: '%s' => '%s'" % (title, link_url)
+
                 if menu.is_scanned(title):
-                    self.log_debug("skipping menu item '%s', it was already scanned" % title)
+                    self.log_info("skip %s [already scanned]" % msg)
                     continue
 
-                if link == "javascript:void(0);":
-                    self.log_debug("skipping void link in '%s'" % title)
+                if link_url == "javascript:void(0);":
+                    self.log_info("skip %s [void js link]" % msg)
                     continue
 
-                if self.cp_skip_menu_item(link_el, title, link):
-                    self.log_debug("skipping menu item '%s'" % title)
+                if self.cp_skip_menu_item(link_el, title, link_url):
+                    self.log_info("skip %s [cp_skip_menu_item() = True]" % msg)
                     continue
 
                 curr_xpath = self.get_current_xpath(link_el)
 
-                self.log_info("clicking on the '%s' menu item, link %s" % (title, link))
+                self.log_info("found %s" % msg)
                 try:
                     self.cp_do_menu_item_click(link_el, title=title)
                 except WebDriverException as e:
@@ -357,7 +365,7 @@ class CPEngineBase:
                     self.log_warning("WARNING: can't wait for '%s' " % (title) + "menu click completion, skipping it")
                     continue
 
-                curr_url = self.cp_get_current_url(link)
+                curr_url = self.cp_get_current_url(link_url)
                 self.browser.history.append(curr_url)
 
                 if menu.is_scanned(curr_url, check_in_parent=True):
