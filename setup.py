@@ -31,6 +31,7 @@ setup(
     # Author details
     author='perfguru87',
     author_email='perfguru87@gmail.com',
+    url='http://www.perftracker.org',
 
     # Choose your license
     license='MIT License',
@@ -61,7 +62,7 @@ setup(
     ],
 
     # What does your project relate to?
-    keywords='performance tests tools selenium webdriver perftracker',
+    keywords='performance tests tools selenium webdriver perftracker client',
 
     # You can just specify the packages manually here if your project is
     # simple. Or you can use find_packages().
