@@ -11,7 +11,8 @@ Group:		Development/Libraries
 License:	MIT
 
 BuildRequires:	python
-Requires:	python xorg-x11-server-Xvfb chromedriver google-chrome-stable python-setuptools
+Requires:	python git gcc python-devel python-setuptools python-dateutil
+Requires:       xorg-x11-server-Xvfb chromedriver google-chrome-stable
 
 %description
 The perftracker-lib is a set of performance and reporting python libraries (the
