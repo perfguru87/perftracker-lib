@@ -103,7 +103,8 @@ class CPMenuItem:
 
 
 class CPLoginForm:
-    def __init__(self, user_tags=None, user_ids=None, pass_tags=None, pass_ids=None, sbmt_tags=None, sbmt_ids=None, sbmt_xpath=None):
+    def __init__(self, user_tags=None, user_ids=None, pass_tags=None, pass_ids=None,
+                 sbmt_tags=None, sbmt_ids=None, sbmt_xpath=None):
 
         def _capitalize_list(tags):
             ret = [k for k in tags]
