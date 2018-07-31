@@ -60,10 +60,10 @@ class CPWPAdminConsole(CPEngineBase):
 
         return True
 
-    def cp_skip_menu_item(self, link_el, title):
+    def cp_skip_menu_item(self, link_el, title, link_url):
         if title in ("Customize", "Header", "Editor"):
             return True
-        return CPEngineBase.cp_skip_menu_item(self, link_el, title)
+        return CPEngineBase.cp_skip_menu_item(self, link_el, title, link_url)
 
     def cp_menu_item_click(self, el, timeout_s=None, title=None):
         # BackupConsole doesn't re-render the page, it means default
