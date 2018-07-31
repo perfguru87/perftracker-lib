@@ -4,3 +4,4 @@ pyvirtualdisplay
 psutil
 pycurl
 six
+Pillow

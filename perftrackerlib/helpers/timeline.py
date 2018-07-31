@@ -379,7 +379,7 @@ class ptDoc:
         else:
             self.header = "<html><head><meta http-equiv='content-type' content='text/html; charset=utf-8'>"
             if title:
-                self.header += "<title>%s</title>" % title
+                self.header += "<title>%s</title>" % str(title)
             self.header += "</head>"
             self.header += "<body>"
         self.header += self._embed(["jsapi.js", "udate.js", "timeline.js", "formatendefault.js"])

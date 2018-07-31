@@ -48,6 +48,7 @@ from .browser_base import BrowserExc, DEFAULT_NAV_TIMEOUT, DEFAULT_AJAX_THRESHOL
 from .browser_python import BrowserPython
 from .browser_chrome import BrowserChrome
 from .browser_firefox import BrowserFirefox
+from .html_report import ptBrowserHtmlReport
 from .page import PageStats
 from .utils import gen_urls_from_index_file
 from .cp_engine import CPEngineBase
@@ -100,6 +101,7 @@ class CPBrowserRunner:
         self.page_stats = []
         self.user = users[(self.browser_id - 1) % len(users)] if users else None
         self.pt_suite = pt_suite
+        self._html_report = None
 
         self.browser_class = BROWSERS[0]
         for b in BROWSERS:
@@ -136,10 +138,18 @@ class CPBrowserRunner:
 
             self.opts.telemetry = os.path.join(self.workdir, "telemetry.log")
 
+        if self.opts.html_report:
+            self._html_report = ptBrowserHtmlReport(self.opts.html_report, title=self.urls[0])
+            self._html_report.gen_index_html()
+
     def fini(self):
         if self.browser_id:
             sys.stdout = self._stdout_orig
             sys.stderr = self._stderr_orig
+
+        if self._html_report:
+            p = self._html_report.gen_index_html()
+            print("See HTML report here: %s" % p)
 
     def _detect_cp_type(self):
         for cp in self.cp_engines:
@@ -299,9 +309,11 @@ class CPBrowserRunner:
                 logging.error("Browser exception @ %s: %s\n%s" % (name, url, e))
                 continue
 
-            if self.opts.screenshot:
-                self.browser.browser_get_screenshot_as_file(self.opts.screenshot)
-                print("Screenshot saved to file: %s" % self.opts.screenshot)
+            if self.opts.html_report:
+                img_path = self._html_report.add_page(url, page)
+                self.browser.browser_get_screenshot_as_file(img_path)
+                self.browser.log_info("screenshot saved to file: %s" % img_path)
+                self._html_report.gen_thumbnails(url)
 
             if self.opts.requests:
                 description = ["SCREEN: %s" % page.get_full_name(), "URL: %s" % page.url]
@@ -483,7 +495,8 @@ class CPCrawler:
         og.add_option("", "--log-file", type="string", help="log into the file (default %s)" % self.logfile)
         og.add_option("", "--log2file", action="store_true", help="enable --verbose mode and log to the --log-file")
         og.add_option("-V", "--view", action="store_true", help="Show browser screen")
-        og.add_option("-g", "--screenshot", type="string", help="dump screenshot to the given file")
+        og.add_option("-g", "--html-report", type="string",
+                      help="generate HTML report with screenshots and other information")
         og.add_option("-t", "--telemetry", type="string",
                       help="log pages to given file (append only, concurrent-process-safe)")
         og.add_option("-w", "--wait", action="store_true", help="don\'t close the browser and wait till test is killed")
