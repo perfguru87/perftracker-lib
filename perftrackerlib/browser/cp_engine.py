@@ -147,7 +147,7 @@ class CPEngineBase:
 
     login_form = CPLoginForm()
 
-    def __init__(self, browser, user=None, password=None):
+    def __init__(self, browser, user=None, password=None, html_report=None):
         self.browser = browser
         self.log_error = browser.log_error
         self.log_warning = browser.log_warning
@@ -158,6 +158,7 @@ class CPEngineBase:
         self.current_frame = None
         self.user = user
         self.password = password
+        self._html_report = html_report
 
     #
     # Virtual methods, can be control panel specific
@@ -376,6 +377,12 @@ class CPEngineBase:
                 self.log_info(" ... '%s' menu item has URL: %s, xpath: %s" % (title, curr_url, curr_xpath))
 
                 ch = menu.add_child(title, curr_url, curr_xpath, x)
+
+                if self._html_report:
+                    img_path = self._html_report.add_page(url=curr_url, title=ch.title)
+                    self.browser.browser_get_screenshot_as_file(img_path)
+                    self._html_report.gen_thumbnails(curr_url)
+
                 self._populate_menu(ch)
                 self._populate_menu(menu)
                 break

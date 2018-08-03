@@ -138,7 +138,7 @@ class CPBrowserRunner:
 
             self.opts.telemetry = os.path.join(self.workdir, "telemetry.log")
 
-        if self.opts.html_report:
+        if self.opts.html_report and self.browser_id == 0:
             self._html_report = ptBrowserHtmlReport(self.opts.html_report, title=self.urls[0])
             self._html_report.gen_index_html()
 
@@ -154,7 +154,7 @@ class CPBrowserRunner:
     def _detect_cp_type(self):
         for cp in self.cp_engines:
             self.browser.log_info("Trying to recognize: %s ..." % cp.type)
-            c = cp(self.browser, self.user, self.opts.password)
+            c = cp(self.browser, self.user, self.opts.password, self._html_report)
             if not c.cp_init_context():
                 continue
             if not len(c.menu_xpaths):
@@ -277,7 +277,7 @@ class CPBrowserRunner:
                 urls = items
 
         if CP is None:
-            CP = CPEngineBase(self.browser)
+            CP = CPEngineBase(self.browser, html_report=self._html_report)
 
         CP.cp_handle_opts(self.opts)
         self._pt_suite_init(CP)
@@ -312,7 +312,6 @@ class CPBrowserRunner:
             if self.opts.html_report:
                 img_path = self._html_report.add_page(url, page)
                 self.browser.browser_get_screenshot_as_file(img_path)
-                self.browser.log_info("screenshot saved to file: %s" % img_path)
                 self._html_report.gen_thumbnails(url)
 
             if self.opts.requests:
