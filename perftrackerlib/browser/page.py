@@ -530,7 +530,7 @@ class Page:
 
         ar = line.split("|")
         if len(ar) < 7:
-                    raise Exception("can't parse line: %s" % line)
+            raise Exception("can't parse line: %s" % line)
 
         url = ar[7].strip()
 
