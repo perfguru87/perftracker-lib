@@ -374,6 +374,12 @@ class BrowserWebdriver(BrowserBase):
         return self.driver.switch_to.default_content()
 
     def dom_send_keys(self, el, keys):
+        val = el.get_attribute('value')
+        if val != '':  # clear initial value
+            self.log_info("Element value is not empty, clear content...")
+            self.driver.execute_script("arguments[0].value = ''", el)
+            time.sleep(2.0)
+
         for ch in keys:
             el.send_keys(ch)
             time.sleep(0.2)
