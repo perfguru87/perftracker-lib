@@ -49,7 +49,7 @@ from .browser_python import BrowserPython
 from .browser_chrome import BrowserChrome
 from .browser_firefox import BrowserFirefox
 from .html_report import ptBrowserHtmlReport
-from .page import PageStats
+from .page import PageStats, PageStatsSummary
 from .utils import gen_urls_from_index_file
 from .cp_engine import CPEngineBase
 from ..helpers.texttable import TextTable
@@ -98,7 +98,7 @@ class CPBrowserRunner:
         self.urls = urls
         self.browser_id = int(browser_id)
         self.workdir = workdir
-        self.page_stats = []
+        self.page_stats_summary = PageStatsSummary()
         self.user = users[(self.browser_id - 1) % len(users)] if users else None
         self.pt_suite = pt_suite
         self._html_report = None
@@ -405,7 +405,10 @@ class CPBrowserRunner:
             if need_to_exit:
                 break
 
-        self.page_stats += browser_page_stats + simulators_page_stats
+        for ps in browser_page_stats:
+            self.page_stats_summary.add_page_stats(ps)
+        for ps in simulators_page_stats:
+            self.page_stats_summary.add_page_stats(ps)
 
     def run(self):
 
@@ -441,8 +444,8 @@ class CPBrowserRunner:
             self.fini()
 
         if not self.browser_id:
-            if self.page_stats:
-                PageStats.print_summary(self.page_stats, title='Final summary')
+            if self.page_stats_summary:
+                self.page_stats_summary.print_summary(title='Final summary')
 
             if self.opts.wait:
                 print("Press Ctrl+C to exit...")
@@ -661,7 +664,6 @@ class CPCrawler:
             print("   * The %s file is updated every %d sec" % (report_fname, delay))
             print("")
 
-            pt = None
             while True:
                 time.sleep(delay)
                 all_dead = True
@@ -670,16 +672,9 @@ class CPCrawler:
                         continue
                     all_dead = False
 
-                if os.path.exists(telemetry_fname):
-                    pt = PagesTelemetry()
-                    pt.parse([telemetry_fname])
-                    print(pt.genRow())
-                    pt.genReport(report_fname, "Report")
-
                 if all_dead:
                     break
 
-            page_stats = None  # fixme, need to aggregate stats for multiple browsers
             for i in range(1, self.opts.real_browsers + 1):
                 cpbr = cpbr_objs[i].get()
                 if os.path.exists(cpbr.stderr_fname):
@@ -691,18 +686,11 @@ class CPCrawler:
 
             report_fname = os.path.join(self.workdir, "report.html")
 
-            if pt:
-                pt.rt.print_summary()
-
-                page_stats = pt.get_page_stats()
-                PageStats.print_summary(page_stats, title='Pages summary')
-
         else:
             cpbr = _browser_launch(None, cp_engines, self.opts, self.urls, users, 0, self.logfile,
                                    self.workdir, self.pt_suite)
-            page_stats = cpbr.page_stats
 
-        return page_stats
+        return
 
 
 ##############################################################################

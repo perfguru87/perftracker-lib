@@ -545,6 +545,102 @@ class Page:
         return p
 
 
+class PageStatsSummary:
+    def __init__(self):
+        self.common_prefix = ""
+        self.page_stats = []
+
+        def browser_dict():
+            return defaultdict(url_dict)
+
+        def url_dict():
+            return defaultdict(int)
+
+        def status_dict():
+            return defaultdict(int)
+
+        self.reqs = defaultdict(browser_dict)
+        self.errs = {}
+
+    def add_page_stats(self, page_stats):
+        page_stats.summary = self
+        self.page_stats.append(page_stats)
+
+    def update_reqs(self):
+        self.reqs = defaultdict(browser_dict)
+
+        urls = set()
+        for ps in self.page_stats:
+            for p in ps.iterations:
+                for r in p.requests:
+                    urls.add(r.url)
+
+        self.common_prefix = get_common_url_prefix(urls)
+
+        for ps in self.page_stats:
+            for p in ps.iterations:
+                for r in p.requests:
+                    reqs[ps.id][r.url]['all'] += 1
+                    if not r.is_ok():
+                        self.reqs[ps.id][r.url][r.status] += 1
+
+        self.errs = {}
+        for b, items in self.reqs.items():
+            for url, statuses in items.items():
+                for status, count in reqs[b][url].items():
+                    if status == 'all':
+                        continue
+                    total = reqs[b][url]['all']
+                    if b not in errs:
+                        errs[b] = []
+                    errs[b].append(["  " + url[len(self.common_prefix):], status, count,
+                                   "%.1f" % (100 * count / (1.0 * total))])
+
+    def print_summary(self, title="Summary"):
+        print("")
+        if title and not isinstance(title, str):
+            title = "Summary"
+        if title:
+            PageStats.print_title(title)
+
+        t = TextTable(left_aligned=[0], max_col_width=[72])
+        t.add_row(["Screen", "Iters", "   Requests per page   ", "RecvAvg", "Total", "MemUsg"])
+        t.add_row(["", "", "Ntwrk  Rptd  Frgn  Errs", "   (KB)", " (ms)", "  (KB)"])
+        t.add_row("-")
+
+        prev_psid = ""
+        for ps in self.page_stats:
+
+            if prev_psid != ps.id:
+                t.add_row(str(ps.id) + ":")
+                prev_psid = ps.id
+
+            t.add_row(["  " + ps.get_screen_title(self.common_prefix), len(ps.iterations),
+                       ("%5s  %4s  %4s  %4s") %
+                       ("%5.0f" % ps.uncached_reqs if ps.uncached_reqs else "-",
+                        "%4.0f" % ps.repeated_reqs if ps.repeated_reqs else "-",
+                        "%4.0f" % ps.foreign_reqs if ps.foreign_reqs else "-",
+                        "%.1f!" % (ps.errs_cnt) if ps.errs_cnt else "-"),
+                       "%.1f" % ps.size_bytes,
+                       "%.0f" % ps.dur_sec,
+                       "%.0f" % ps.ram_usage_kb])
+
+        print("  " + "\n  ".join(t.get_lines()))
+
+        if len(self.errs):
+            print("")
+            PageStats.print_title("Warning: error network requests detected !!!")
+
+            wt = TextTable(left_aligned=[0, 1], max_col_width=[80])
+            wt.add_row(["URL", "Status", "Count", "% of total"])
+            wt.add_row("-")
+            for b, rows in self.errs.items():
+                wt.add_row(b + ":")
+                for row in rows:
+                    wt.add_row(row)
+            print("  " + "\n  ".join(wt.get_lines()))
+
+
 class PageStats:
     separator = "-->"
     width = 118
@@ -552,31 +648,46 @@ class PageStats:
     def __init__(self, id=""):
         self.iterations = []
         self.id = id
+        self.summary = None
 
-    def get_summary(self, common_prefix=""):
+        self.update()
+
+    def update(self):
+        self.size_bytes = 0
+        self.errs_cnt = 0
+        self.uncached_reqs = 0
+        self.repeated_reqs = 0
+        self.foreign_reqs = 0
+        self.dur_sec = 0
+        self.ram_usage_kb = 0
+
         if not len(self.iterations):
-            return None, None, None, None, None, None, None
-
-        screen = self.iterations[0].get_full_name(common_prefix)
-        iterations = len(self.iterations)
-        n = float(iterations)
-
-        size = 0
-        errs = 0
-        uncached = 0
-        repeated = 0
-        foreign = 0
-        dur = 0
+            return
 
         for i in self.iterations:
-            size += i.length
-            errs += len(i.get_error_reqs())
-            uncached += len(i.get_uncached_reqs())
-            repeated += i.get_repeated_reqs_cnt()
-            foreign += len(i.get_foreign_reqs())
-            dur += i.dur
+            self.size_bytes += i.length
+            self.errs_cnt += len(i.get_error_reqs())
+            self.uncached_reqs += len(i.get_uncached_reqs())
+            self.repeated_reqs += i.get_repeated_reqs_cnt()
+            self.foreign_reqs += len(i.get_foreign_reqs())
+            self.dur_sec += i.dur
+            self.ram_usage_kb += i.ram_usage_kb
 
-        return screen, iterations, size / n, errs / n, uncached / n, repeated / n, foreign / n, dur / n
+        n = float(len(self.iterations))
+
+        self.size_bytes /= n
+        self.errs_cnt /= n
+        self.uncached_reqs /= n
+        self.repeated_reqs /= n
+        self.foreign_reqs /= n
+        self.dur_sec /= n
+        self.ram_usage_kb /= n
+
+    def add_iteration(self, page):
+        self.iterations.append(page)
+        self.update()
+        if self.summary:
+            self.summary.update_reqs()
 
     @staticmethod
     def print_title(title):
@@ -624,93 +735,6 @@ class PageStats:
         print("| Total(ms) | MemUsg(KB)")
         print("  " + "-" * PageStats.width)
 
-    @staticmethod
-    def print_summary(pages_stats, title="Summary"):
-        print("")
-        if title and not isinstance(title, str):
-            title = "Summary"
-        if title:
-            PageStats.print_title(title)
-
-        t = TextTable(left_aligned=[0], max_col_width=[72])
-        t.add_row(["Screen", "Iters", "   Requests per page   ", "RecvAvg", "Total", "MemUsg"])
-        t.add_row(["", "", "Ntwrk  Rptd  Frgn  Errs", "   (KB)", " (ms)", "  (KB)"])
-        t.add_row("-")
-
-        urls = set()
-        for ps in pages_stats:
-            for p in ps.iterations:
-                for r in p.requests:
-                    urls.add(r.url)
-
-        common_prefix = get_common_url_prefix(urls)
-
-        def browser_dict():
-            return defaultdict(url_dict)
-
-        def url_dict():
-            return defaultdict(int)
-
-        def status_dict():
-            return defaultdict(int)
-
-        reqs = defaultdict(browser_dict)
-
-        prev_psid = ""
-        for ps in pages_stats:
-
-            screen, iterations, size, errs, uncached, repeated, foreign, dur = ps.get_summary(common_prefix)
-
-            if prev_psid != ps.id:
-                t.add_row(str(ps.id) + ":")
-                prev_psid = ps.id
-
-            t.add_row(["  " + screen, iterations,
-                       ("%5s  %4s  %4s  %4s") %
-                       ("%5.0f" % uncached if uncached else "-",
-                        "%4.0f" % repeated if repeated else "-",
-                        "%4.0f" % foreign if foreign else "-",
-                        "%.1f!" % (errs) if errs else "-"),
-                       "%.1f" % size,
-                       "%.0f" % dur,
-                       "%.0f" % (sum([p.ram_usage_kb for p in ps.iterations]) / float(iterations))])
-
-            for p in ps.iterations:
-                for r in p.requests:
-                    reqs[ps.id][r.url]['all'] += 1
-                    if not r.is_ok():
-                        reqs[ps.id][r.url][r.status] += 1
-
-        errs = {}
-        for b, items in reqs.items():
-            for url, statuses in items.items():
-                for status, count in reqs[b][url].items():
-                    if status == 'all':
-                        continue
-                    total = reqs[b][url]['all']
-                    if b not in errs:
-                        errs[b] = []
-                    errs[b].append(["  " + url[len(common_prefix):], status, count,
-                                   "%.1f" % (100 * count / (1.0 * total))])
-
-        print("  " + "\n  ".join(t.get_lines()))
-
-        if len(errs):
-            print("")
-            PageStats.print_title("Warning: error network requests detected !!!")
-
-            wt = TextTable(left_aligned=[0, 1], max_col_width=[80])
-            wt.add_row(["URL", "Status", "Count", "% of total"])
-            wt.add_row("-")
-            for b, rows in errs.items():
-                wt.add_row(b + ":")
-                for row in rows:
-                    wt.add_row(row)
-            print("  " + "\n  ".join(wt.get_lines()))
-
-    def add_iteration(self, page):
-        self.iterations.append(page)
-
     def print_page_timeline(self, p, title="", hr=False):
         if not p:
             return
@@ -744,6 +768,11 @@ class PageStats:
         avg.dur = int(avg.dur / len(iterations))
         avg.ram_usage_kb = sum([p.ram_usage_kb for p in iterations]) / len(iterations)
         return avg
+
+    def get_screen_title(self, common_prefix=""):
+        if len(self.iterations):
+            return self.iterations[0].get_full_name(common_prefix)
+        return ""
 
 
 # Represents some kind of the html page model with focus on actions (URLs)
