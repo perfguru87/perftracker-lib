@@ -310,7 +310,7 @@ class CPBrowserRunner:
                 continue
 
             if self.opts.html_report:
-                img_path = self._html_report.add_page(url, page)
+                img_path = self._html_report.add_page(url, page=page)
                 self.browser.browser_get_screenshot_as_file(img_path)
                 self._html_report.gen_thumbnails(url)
 
