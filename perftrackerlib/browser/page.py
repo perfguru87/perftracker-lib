@@ -80,6 +80,7 @@ class PageRequestsGroup:
         self.ts_start = request.ts_start
         self.ts_end = request.ts_start + request.dur if request.ts_start else None
         self.requests = [request]
+        self.uncached_requests = [] if request.cached else [request]
 
     def _add(self, request):
         if self.ts_start is None:
@@ -89,6 +90,8 @@ class PageRequestsGroup:
         self.ts_start = min(self.ts_start, request.ts_start) if self.ts_start else None
         self.ts_end = max(self.ts_end, request.ts_start + request.dur) if self.ts_end else None
         self.requests.append(request)
+        if not request.cached:
+            self.uncached_requests.append(request)
 
     def add_request(self, request):
         if not self.ts_start:
@@ -100,7 +103,7 @@ class PageRequestsGroup:
         return False
 
     def get_uncached_reqs(self):
-        return [r for r in self.requests if not r.cached]
+        return self.uncached_requests
 
 
 _page_req_id = 0
