@@ -1,5 +1,5 @@
-# perftracker-client
-A client library for the [perftracker](https://github.com/perfguru87/perftracker)
+# perftracker-lib
+A client library for the [perftracker](https://github.com/perfguru87/perftracker) and a set of libraries for performance testing
 
 ## Supported python version
 
