@@ -1,5 +1,5 @@
 %define python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib()")
-%define _ver 0.0.17
+%define _ver 0.0.19
 
 Name:		perftracker-lib
 Version:	%{_ver}
@@ -33,5 +33,7 @@ echo -e "\n====== The perftracker-lib uninstallation done =========\n"
 %files
 
 %changelog
+* Tue Aug 7 2018 <perfguru87@gmail.com>
+- update to 0.0.19
 * Mon Jul 30 2018 <perfguru87@gmail.com>
 - initial version
