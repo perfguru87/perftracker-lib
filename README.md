@@ -9,6 +9,14 @@ python3.0+
 
 ## Building and installing the perftracker-client python package
 
+Installing from pypi.org:
+
+```
+pip install perftrackerlib
+```
+
+Installing from sources:
+
 ```
 python3 ./setup.py build
 python3 ./setup.py install
