@@ -18,7 +18,7 @@ Requires:       xorg-x11-server-Xvfb chromedriver google-chrome-stable
 The perftracker-lib is a set of performance and reporting python libraries (the
 perftracker client, the UI crawler library and other helpers)
 
-%pre
+%post
 echo -e "\n====== Installing the perftracker-lib v%{_ver} from sources =======\n"
 echo "PRE easy_install git+https://github.com/perfguru87/perftracker-lib.git@v%{_ver}"
 easy_install git+https://github.com/perfguru87/perftracker-lib.git@v%{_ver} || exit -1
