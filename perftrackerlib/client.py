@@ -17,6 +17,7 @@ else:
     import httplib
 
 API_VER = '1.0'
+PT_SERVER_DEFAULT_URL = "http://127.0.0.1:9000"
 
 TEST_STATUSES = ['NOTTESTED', 'SKIPPED', 'INPROGRESS', 'SUCCESS', 'FAILED']
 
@@ -263,7 +264,8 @@ class ptSuite:
     def __init__(self, job_title='job title', project_name=None, cmdline=None,
                  product_name=None, product_ver=None,
                  suite_name=None, suite_ver=None,
-                 uuid1=None, append=False, replace=False, begin=None, end=None, links=None):
+                 uuid1=None, append=False, replace=False, begin=None, end=None, links=None,
+                 pt_server_url=PT_SERVER_DEFAULT_URL, save_to_file=None):
         """
         job_name   - job title on portal: '[disk tests] KVM 2.6.32'
         suite_name - suite name to filter/search: 'disk tests'
@@ -298,7 +300,8 @@ class ptSuite:
         self.tests = []
         self._key2test = {}
 
-        self.cmdline_options = None
+        self.pt_server_url = pt_server_url.rstrip("/") if pt_server_url else PT_SERVER_DEFAULT_URL
+        self.save_to_file = save_to_file
 
         self.validate()
 
@@ -340,9 +343,8 @@ class ptSuite:
         return json.dumps(self, cls=ptJsonEncoder)
 
     def _genApiUrl(self, url):
-        assert self.cmdline_options
-        assert self.cmdline_options.pt_url
-        return "%s/api/v%s/%s" % (self.cmdline_options.pt_url, API_VER, url)
+        assert self.pt_server_url
+        return "%s/api/v%s/%s" % (self.pt_server_url, API_VER, url)
 
     def upload(self):
         if self._auto_end is None:
@@ -350,12 +352,12 @@ class ptSuite:
 
         json_prettified = self.toJson(pretty=True)
 
-        if self.cmdline_options.pt_to_file:
-            if self.cmdline_options.pt_to_file == "-":
+        if self.save_to_file:
+            if self.save_to_file == "-":
                 print ("Job json:")
                 print (json_prettified)
             else:
-                with open(self.cmdline_options.pt_to_file, 'w') as f:
+                with open(self.save_to_file, 'w') as f:
                     f.write(json_prettified)
             return True
 
@@ -380,13 +382,13 @@ class ptSuite:
         return True
 
     def addOptions(self, option_parser, pt_url=None, pt_project=None):
-        if pt_url is None:
-            pt_url = "http://127.0.0.1:9000"
-        pt_url = pt_url.rstrip('/')
+        if pt_url is not None:
+            logging.error("the addOptions(pt_url) argument is deprecated, use ptSuite(pt_server_url=...)")
+            self.pt_server_url = pt_url.rstrip('/')
         g = optparse.OptionGroup(option_parser, "PerfTracker options")
         g.add_option("--pt-to-file", type="str", help="Dump the job results json to a file instead of upload")
         g.add_option("--pt-project", type="str", help="The PerfTracker project name", default=pt_project)
-        g.add_option("--pt-url", type="str", help="The PerfTracker portal URL, default: %default", default=pt_url)
+        g.add_option("--pt-url", type="str", help="The PerfTracker portal URL, default: %default", default=self.pt_server_url)
         g.add_option("--pt-replace", type="str",  help="replace tests results in the job with given UUID")
         g.add_option("--pt-append", type="str", help="append tests results to the job with given UUID")
         g.add_option("--pt-title", type="str",  help="PerfTracker job title to be used")
@@ -398,26 +400,33 @@ class ptSuite:
         option_parser.add_option_group(g)
 
     def handleOptions(self, options):
-        self.cmdline_options = options
-        self.cmdline_options.pt_url = options.pt_url.rstrip('/') if options else None
+        if not options:
+            return
 
-        if self.cmdline_options.pt_replace:
-            self.uuid = self.cmdline_options.pt_replace
+        def _exists(options, key):
+            return options.__dict__.get(key, None) is not None
+
+        if _exists(options, 'pt_to_file'):
+            self.save_to_file = options.pt_to_file
+        if _exists(options, 'pt_url'):
+            self.pt_server_url = options.pt_url.rstrip('/')
+        if _exists(options, 'pt_replace'):
+            self.uuid = options.pt_replace
             self.replace = True
-        if not self.project_name:
-            self.project_name = self.cmdline_options.pt_project
-        if self.cmdline_options.pt_title:
-            self.job_title = self.cmdline_options.pt_title
-        if self.cmdline_options.pt_version:
-            self.suite_ver = self.cmdline_options.pt_version
-        if self.cmdline_options.pt_regression_tag:
-            self.regression_tag = self.cmdline_options.pt_regression_tag
-        if self.cmdline_options.pt_regression_name:
-            self.regression_name = self.cmdline_options.pt_regression_name
-        if self.cmdline_options.pt_product_name:
+        if _exists(options, 'pt_project'):
+            self.project_name = options.pt_project
+        if _exists(options, 'pt_title'):
+            self.job_title = options.pt_title
+        if _exists(options, 'pt_version'):
+            self.suite_ver = options.pt_version
+        if _exists(options, 'pt_regression_tag'):
+            self.regression_tag = options.pt_regression_tag
+        if _exists(options, 'pt_regression_name'):
+            self.regression_name = options.pt_regression_name
+        if _exists(options, 'pt_product_name'):
             self.product_name = self.cmdline_optons.pt_product_name
-        if self.cmdline_options.pt_product_version:
-            self.product_ver = self.cmdline_options.pt_product_version
-        if self.cmdline_options.pt_append:
-            self.uuid = self.cmdline_options.pt_append
+        if _exists(options, 'pt_product_version'):
+            self.product_ver = options.pt_product_version
+        if _exists(options, 'pt_append'):
+            self.uuid = options.pt_append
             self.append = True
