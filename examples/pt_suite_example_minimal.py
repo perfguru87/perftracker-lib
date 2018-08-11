@@ -1,17 +1,15 @@
 #!/usr/bin/env python
 
-from optparse import OptionParser, OptionGroup
+from optparse import OptionParser
 import os
 import sys
 import logging
 import random
-from math import sqrt
 
 bindir, basename = os.path.split(sys.argv[0])
 sys.path.insert(0, os.path.join(bindir, ".."))
 
-from perftrackerlib.client import ptSuite, ptHost, ptVM, ptComponent, ptProduct, ptTest
-from perftrackerlib import __version__
+from perftrackerlib.client import ptSuite, ptTest
 
 
 def main(suite):
