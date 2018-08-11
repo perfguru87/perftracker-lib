@@ -46,3 +46,7 @@ Make a change and test your code before commit:
 ```
 python ./test.py
 ```
+
+## Release notes
+
+See [http://www.perftracker.org/client/#Release_Notes](http://www.perftracker.org/client/#Release_Notes)
