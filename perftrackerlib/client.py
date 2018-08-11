@@ -261,7 +261,7 @@ class ptProduct:
 
 
 class ptSuite:
-    def __init__(self, job_title='job title', project_name=None, cmdline=None,
+    def __init__(self, job_title='job title', project_name="Default project", cmdline=None,
                  product_name=None, product_ver=None,
                  suite_name=None, suite_ver=None,
                  uuid1=None, append=False, replace=False, begin=None, end=None, links=None,
@@ -383,11 +383,15 @@ class ptSuite:
 
     def addOptions(self, option_parser, pt_url=None, pt_project=None):
         if pt_url is not None:
-            logging.error("the addOptions(pt_url) argument is deprecated, use ptSuite(pt_server_url=...)")
+            logging.error("the addOptions(pt_url=...) is deprecated, use ptSuite(pt_server_url=...)")
             self.pt_server_url = pt_url.rstrip('/')
+        if pt_project is not None:
+            logging.error("the addOptions(pt_project=...) is deprecated, use ptSuite(project_name=...)")
+            self.project_name = pt_project
+
         g = optparse.OptionGroup(option_parser, "PerfTracker options")
         g.add_option("--pt-to-file", type="str", help="Dump the job results json to a file instead of upload")
-        g.add_option("--pt-project", type="str", help="The PerfTracker project name", default=pt_project)
+        g.add_option("--pt-project", type="str", help="The PerfTracker project name", default=self.pt_project)
         g.add_option("--pt-url", type="str", help="The PerfTracker portal URL, default: %default", default=self.pt_server_url)
         g.add_option("--pt-replace", type="str",  help="replace tests results in the job with given UUID")
         g.add_option("--pt-append", type="str", help="append tests results to the job with given UUID")
