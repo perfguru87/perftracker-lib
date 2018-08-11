@@ -5,5 +5,5 @@ echo "\n###### run the following commands manually ######\n"
 echo "vim perftracker-lib.spec # update version"
 echo "git commit -m \"bump version to $VER\" perftrackerlib/__init__.py && git tag \"v$VER\" && git push origin --tags"
 echo python3 setup.py sdist bdist_wheel
-echo twine upload dist/perftrackerlib*.tar.gz
+echo twine upload dist/perftrackerlib-$VER.tar.gz
 echo
