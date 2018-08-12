@@ -391,7 +391,7 @@ class ptSuite:
 
         g = optparse.OptionGroup(option_parser, "PerfTracker options")
         g.add_option("--pt-to-file", type="str", help="Dump the job results json to a file instead of upload")
-        g.add_option("--pt-project", type="str", help="The PerfTracker project name", default=self.pt_project)
+        g.add_option("--pt-project", type="str", help="The PerfTracker project name", default=self.project_name)
         g.add_option("--pt-url", type="str", help="The PerfTracker portal URL, default: %default", default=self.pt_server_url)
         g.add_option("--pt-replace", type="str",  help="replace tests results in the job with given UUID")
         g.add_option("--pt-append", type="str", help="append tests results to the job with given UUID")
