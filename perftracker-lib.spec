@@ -3,10 +3,10 @@
 
 Name:		perftracker-lib
 Version:	%{_ver}
-Release:    0
+Release:	0
 Summary:	The perftracker libraries set
 
-BuildArch:  noarch
+BuildArch:	noarch
 Group:		Development/Libraries
 License:	MIT
 
