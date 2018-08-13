@@ -22,7 +22,7 @@ PT_SERVER_DEFAULT_URL = "http://127.0.0.1:9000"
 TEST_STATUSES = ['NOTTESTED', 'SKIPPED', 'INPROGRESS', 'SUCCESS', 'FAILED']
 
 def pt_float(value):
-    if value > 100 or value < 100:
+    if value > 100 or value < -100:
         return int(round(value))
     elif value < 0.00000001:
         return 0
