@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 from optparse import OptionParser, OptionGroup
 import os
 import sys
