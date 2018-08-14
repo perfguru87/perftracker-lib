@@ -33,7 +33,7 @@ echo -e "\n====== The perftracker-lib uninstallation done =========\n"
 %files
 
 %changelog
-* Tue Aug 11 2018 <perfguru87@gmail.com>
+* Tue Aug 7 2018 <perfguru87@gmail.com>
 - update to 0.0.20
 * Tue Aug 7 2018 <perfguru87@gmail.com>
 - update to 0.0.19
