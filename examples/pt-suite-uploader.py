@@ -49,6 +49,11 @@ def run(suite, as_json, from_file, cmdline):
         if status:
             print("command line failed with status %d" % status)
             sys.exit(-1)
+        out = out
+
+    out = out.strip()
+    if type(out) == bytes:
+        out = out.decode()
 
     def validate(test, line):
         if not test.tag:
@@ -63,7 +68,7 @@ def run(suite, as_json, from_file, cmdline):
         return True
 
     if as_json:
-        data = json.loads(out.strip())
+        data = json.loads(out)
         for d in data:
             try:
                 t = ptTest(d['tag'],
@@ -186,7 +191,7 @@ def main():
         ...
       }
     ]
-""" % (TEXT_FORMAT, TEXT_FORMAT)
+"""
 
     op = OptionParser(description=description, usage=usage, formatter=formatter())
     op.add_option("-v", "--verbose", action="store_true", help="enable verbose mode")
