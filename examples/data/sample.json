@@ -1,0 +1,80 @@
+[
+  {
+    "tag":          "login",
+    "score":        1.7,
+    "duration_sec": 15.3,
+    "metrics":      "sec",
+    "loops":        8,
+    "cmdline":      "/bin/login-test -c 1 --url http://localhost.localdomain/",
+    "less_better":  true,
+    "errors":       0,
+    "warnings":     0,
+    "group":        "latency",
+    "category":     "1 clients"
+  },
+  {
+    "tag":          "login",
+    "score":        2.2,
+    "duration_sec": 15.4,
+    "metrics":      "sec",
+    "loops":        7,
+    "cmdline":      "/bin/login-test -c 2 --url http://localhost.localdomain/",
+    "less_better":  true,
+    "errors":       0,
+    "warnings":     0,
+    "group":        "latency",
+    "category":     "2 clients"
+  },
+  {
+    "tag":          "GET /",
+    "scores":       [12.1, 12.2],
+    "duration_sec": 15.0,
+    "metrics":      "rest/sec",
+    "loops":        182,
+    "cmdline":      "/bin/rest-test -c 1 --url http://localhost.localdomain/",
+    "less_better":  false,
+    "errors":       0,
+    "warnings":     0,
+    "group":        "throughput",
+    "category":     "1 threads"
+  },
+  {
+    "tag":          "GET /",
+    "scores":       [52.2, 52.4],
+    "duration_sec": 15.0,
+    "metrics":      "rest/sec",
+    "loops":        783,
+    "cmdline":      "/bin/rest-test -c 4 --url http://localhost.localdomain/",
+    "less_better":  false,
+    "errors":       0,
+    "warnings":     0,
+    "group":        "throughput",
+    "category":     "4 threads"
+  },
+  {
+    "tag":          "GET /users",
+    "scores":       [24.0, 25.1],
+    "duration_sec": 15.0,
+    "metrics":      "rest/sec",
+    "loops":        360,
+    "cmdline":      "/bin/rest-test -c 1 --url http://localhost.localdomain/users",
+    "less_better":  false,
+    "errors":       1,
+    "warnings":     0,
+    "group":        "throughput",
+    "category":     "1 threads"
+  },
+  {
+    "tag":          "GET /users",
+    "scores":       [82.5, 21.2],
+    "duration_sec": 15.0,
+    "metrics":      "rest/sec",
+    "loops":        1237,
+    "cmdline":      "/bin/rest-test -c 4 --url http://localhost.localdomain/users",
+    "less_better":  false,
+    "errors":       1,
+    "warnings":     0,
+    "group":        "throughput",
+    "category":     "4 threads"
+  }
+]
