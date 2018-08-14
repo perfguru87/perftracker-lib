@@ -80,8 +80,8 @@ class ptTest:
         links       - arbitrary links to other systems: {'test logs': 'http://logs.localdomain/231241.log', 'grafana': 'http://grafana.localdomain/cluster3'}
         attribs     - set of test attributes: {'version': '12.4', 'branch': 'mybranch'}
         less_better - set to True if the less is value the better
-        errors      - list of errors: ['failed to create a file, permission denied']
-        warnings    - list of warnings: ['I/O request timed out, retrying....', 'I/O request timed out, retrying...']
+        errors      - total number or list of errors: ['failed to create a file, permission denied']
+        warnings    - total number or list of warnings: ['I/O request timed out, retrying....', 'I/O request timed out, retrying...']
         begin       - time when the test started in datetime.datetime format
         end         - time when the test ended in datetime.datetime format
         duration_sec - test duration (sec)
@@ -119,8 +119,8 @@ class ptTest:
         assert self.tag is not None
         assert self.links is None or type(self.links) is dict
         assert self.attribs is None or type(self.attribs) is dict
-        assert self.errors is None or type(self.errors) is list
-        assert self.warnings is None or type(self.warnings) is list
+        assert self.errors is None or type(self.errors) is int or type(self.errors) is list
+        assert self.warnings is None or type(self.warnings) is int or type(self.warnings) is list
         assert self.scores is None or type(self.scores) is list
         assert self.loops is None or type(self.loops) is int
         assert self.deviations is None or type(self.deviations) is list
