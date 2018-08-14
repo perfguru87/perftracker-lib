@@ -24,7 +24,12 @@ python3 ./setup.py install
 
 ## Usage Examples
 
-### Test Suites
+### Python-written Test Suites
+
+Minimalistic test suite:
+```
+python3 ./examples/pt_suite_example_minimal.py --pt-title="Website suite run" --pt-url http://perftracker.localdomain:9000
+```
 
 Simulate a 'website' suite run and upload results:
 ```
@@ -38,6 +43,18 @@ Use code like `examples/pt_suite_example_populate.sh` to mass populate perftrack
 Run selenium-based test on a real WordPress Admin panel:
 ```
 python3 ./examples/pt-wp-crawler.py -m -U admin -P pass https://demos1.softaculous.com/WordPress/wp-login.php
+```
+
+### Upload pre-generated files with results:
+
+Sometimes you don't want to write a python suite and just grab some files and export results. In this case
+you can use the pt-suite-uploader.py tool to parse test/json files (or even launch an external tool) and then
+upload results:
+```
+python3 ./examples/pt-suite-uploader.py -f ./examples/data/sample.txt
+python3 ./examples/pt-suite-uploader.py -f -j ./examples/data/sample.json
+python3 ./examples/pt-suite-uploader.py -- /bin/echo "tag: my test; score: 2.3;"
+...
 ```
 
 ## Contributing a patch
