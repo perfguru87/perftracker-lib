@@ -84,6 +84,7 @@ class ptTest:
         warnings    - list of warnings: ['I/O request timed out, retrying....', 'I/O request timed out, retrying...']
         begin       - time when the test started in datetime.datetime format
         end         - time when the test ended in datetime.datetime format
+        duration_sec - test duration (sec)
         status      - test status: PASS, FAIL, SKIPPED, INPROGRESS, NOTSTARTED
         """
 
