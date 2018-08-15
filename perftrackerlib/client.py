@@ -58,7 +58,10 @@ class ptJsonEncoder(json.JSONEncoder):
             if val is None or not val:
                 continue
             if type(val) == str:
-                val = val.decode(errors='ignore').encode('utf-8')
+                try:
+                    val = val.decode(errors='ignore').encode('utf-8')
+                except AttributeError as e:
+                    pass
             j[key] = val
         return j
 
