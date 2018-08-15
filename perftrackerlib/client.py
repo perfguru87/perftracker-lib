@@ -438,7 +438,7 @@ class ptSuite:
         if _exists(options, 'pt_regression_name'):
             self.regression_name = options.pt_regression_name
         if _exists(options, 'pt_product_name'):
-            self.product_name = self.cmdline_optons.pt_product_name
+            self.product_name = options.pt_product_name
         if _exists(options, 'pt_product_version'):
             self.product_ver = options.pt_product_version
         if _exists(options, 'pt_append'):
