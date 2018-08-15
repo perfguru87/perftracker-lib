@@ -26,6 +26,8 @@ echo -e "\n====== The perftracker-lib installation done ======================\n
 
 %postun
 echo -e "\n====== Uninstalling the perftracker-lib v%{_ver} =======\n"
+echo "rm -rf /bin/pt-suite-uploader.py"
+rm -rf /bin/pt-suite-uploader.py
 echo "rm -rf %{python_sitelib}/perftrackerlib-%{_ver}*.egg"
 rm -rf "%{python_sitelib}/"perftrackerlib-%{_ver}*.egg
 echo -e "\n====== The perftracker-lib uninstallation done =========\n"
