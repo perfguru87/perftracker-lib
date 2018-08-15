@@ -458,14 +458,15 @@ class CPBrowserRunner:
 
 
 class CPCrawler:
-    def __init__(self, workdir=None, logfile=None, pt_job_title=None):
+    def __init__(self, workdir=None, logfile=None, pt_job_title=None, pt_server_url=None):
 
         self.workdir = workdir if workdir else os.path.join(gettempdir(), "%s.%d" % (basename, os.getpid()))
         self.logfile = logfile
         self.opts = None
         self.urls = []
 
-        self.pt_suite = ptSuite("UI crawler job" if pt_job_title is None else pt_job_title)
+        self.pt_suite = ptSuite("UI crawler job" if pt_job_title is None else pt_job_title,
+                                pt_server_url=pt_server_url)
 
     def _gen_users(self, users_ar):
         if not users_ar:
@@ -488,8 +489,7 @@ class CPCrawler:
     def add_options(self, op, passwd="password",
                     nav_timeout=OPT_DEFAULT_NAV_TIMEOUT,
                     ajax_threshold=OPT_DEFAULT_AJAX_THRESHOLD,
-                    delay_between_click_sec=OPT_DELAY_BETWEEN_CLICK_SEC,
-                    pt_url=None):
+                    delay_between_click_sec=OPT_DELAY_BETWEEN_CLICK_SEC):
 
         og = OptionGroup(op, "Control Panel crawler options")
         og.add_option("-v", "--verbose", action="count", default=0,
@@ -558,7 +558,7 @@ class CPCrawler:
                       help="work directory with the tool logs and final HTML report, default %default")
         op.add_option_group(og)
 
-        self.pt_suite.addOptions(op, pt_url=pt_url)
+        self.pt_suite.addOptions(op)
 
     def init_opts(self, opts, urls, init_logging=True):
 
