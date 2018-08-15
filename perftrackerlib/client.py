@@ -358,7 +358,32 @@ class ptSuite:
         if not self.pt_server_url.startswith("http"):
             logging.debug("adding http:// prefix to server url: %s" % self.pt_server_url)
             self.pt_server_url = "http://%s" % self.pt_server_url
+        url = url.lstrip("/")
         return "%s/api/v%s/%s" % (self.pt_server_url, API_VER, url)
+
+    def validateProjectName(self):
+        if not self.project_name:
+            return
+
+        url = self._genApiUrl("/0/project/")
+        try:
+            response = requests.get(url, headers={'content-type': 'application/json'})
+        except requests.exceptions.ConnectionError as exc:
+            logging.error("Connection error: %s" % str(exc))
+            return False
+
+        if response.status_code != httplib.OK:
+            logging.error("can't get the list of existing projects: %d, %s" % (response.status_code, response.text))
+            sys.exit(-1)
+
+        json_data = json.loads(response.text)
+        for j in json_data:
+            if j['name'] == self.project_name:
+                return
+
+        logging.error("project name validation failed, project '%s' doesn't exist")
+        logging.error("available projects are: %s" % (", ".join(["'%s'" % p['name'] for p in json_data])))
+        sys.exit(-1)
 
     def upload(self):
         if not self.project_name:
@@ -385,13 +410,11 @@ class ptSuite:
 
         json_data = self.toJson()
 
-        headers = {'content-type': 'application/json'}
-
         url = self._genApiUrl('1/job/')
         logging.debug("posting data to %s:\n%s" % (url, json_prettified))
 
         try:
-            response = requests.post(url, data=json_data, headers=headers)
+            response = requests.post(url, data=json_data, headers={'content-type': 'application/json'})
         except requests.exceptions.ConnectionError as exc:
             logging.error("Connection error: %s" % str(exc))
             return False
@@ -457,3 +480,5 @@ class ptSuite:
         if _exists(options, 'pt_append'):
             self.uuid = options.pt_append
             self.append = True
+
+        self.validateProjectName()
