@@ -271,7 +271,7 @@ class ptProduct:
 
 
 class ptSuite:
-    def __init__(self, job_title='job title', project_name="Default project", cmdline=None,
+    def __init__(self, job_title='job title', project_name=None, cmdline=None,
                  product_name=None, product_ver=None,
                  suite_name=None, suite_ver=None,
                  uuid1=None, append=False, replace=False, begin=None, end=None, links=None,
@@ -312,6 +312,7 @@ class ptSuite:
 
         self.pt_server_url = pt_server_url.rstrip("/") if pt_server_url else PT_SERVER_DEFAULT_URL
         self.save_to_file = save_to_file
+        self._pt_options_added = False
 
         self.validate()
 
@@ -360,6 +361,14 @@ class ptSuite:
         return "%s/api/v%s/%s" % (self.pt_server_url, API_VER, url)
 
     def upload(self):
+        if not self.project_name:
+            msg = "Skipping upload() because project name is not specified"
+            if self._pt_options_added:
+                logging.warning("%s, either use --pt-project or ptSuite(..., project_name=, ...)" % msg)
+            else:
+                logging.warning("%s, pass it as ptSuite(..., project_name=, ...)" % msg)
+            return
+
         if self._auto_end is None:
             self.end = datetime.datetime.now()
 
@@ -395,6 +404,7 @@ class ptSuite:
         return True
 
     def addOptions(self, option_parser, pt_url=None, pt_project=None):
+        self._pt_options_added = True
         if pt_url is not None:
             logging.error("the addOptions(pt_url=...) is deprecated, use ptSuite(pt_server_url=...)")
             self.pt_server_url = pt_url.rstrip('/')
