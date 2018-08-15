@@ -351,6 +351,9 @@ class ptSuite:
 
     def _genApiUrl(self, url):
         assert self.pt_server_url
+        if not self.pt_server_url.startswith("http"):
+            logging.debug("adding http:// prefix to server url: %s" % self.pt_server_url)
+            self.pt_server_url = "http://%s" % self.pt_server_url
         return "%s/api/v%s/%s" % (self.pt_server_url, API_VER, url)
 
     def upload(self):
