@@ -22,7 +22,7 @@ from perftrackerlib.client import ptSuite, ptHost, ptVM, ptComponent, ptProduct,
 from perftrackerlib.helpers.textparser import ptParser
 
 from perftrackerlib import perftrackerlib_require_version
-perftrackerlib_require_version('0.0.26')
+perftrackerlib_require_version('0.0.27')
 
 
 def execute(cmd, exc_on_err=True):
