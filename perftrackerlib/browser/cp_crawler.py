@@ -675,6 +675,8 @@ class CPCrawler:
                 if all_dead:
                     break
 
+            page_stats_summary = PageStatsSummary()
+
             for i in range(1, self.opts.real_browsers + 1):
                 cpbr = cpbr_objs[i].get()
                 if os.path.exists(cpbr.stderr_fname):
@@ -684,13 +686,17 @@ class CPCrawler:
                     if data:
                         print("browser.%d stderr:\n%s" % (i, data))
 
+                for ps in cpbr.page_stats_summary.page_stats:
+                    page_stats_summary.add_page_stats(ps)
+
             report_fname = os.path.join(self.workdir, "report.html")
 
         else:
             cpbr = _browser_launch(None, cp_engines, self.opts, self.urls, users, 0, self.logfile,
                                    self.workdir, self.pt_suite)
+            page_stats_summary = cpbr.page_stats_summary
 
-        return
+        return page_stats_summary.page_stats
 
 
 ##############################################################################
