@@ -1,5 +1,5 @@
 %define python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib()")
-%define _ver 0.0.27
+%define _ver 0.0.28
 
 Name:		perftracker-lib
 Version:	%{_ver}
@@ -12,7 +12,7 @@ License:	MIT
 
 BuildRequires:	python
 Requires:	python git gcc python-devel python-setuptools python-dateutil
-Requires:       xorg-x11-server-Xvfb chromedriver google-chrome-stable
+Requires:       xorg-x11-server-Xvfb chromedriver google-chrome-stable libjpeg-devel zlib-devel
 
 %description
 The perftracker-lib is a set of performance and reporting python libraries (the
@@ -35,6 +35,8 @@ echo -e "\n====== The perftracker-lib uninstallation done =========\n"
 %files
 
 %changelog
+* Thu Aug 16 2018 <perfguru87@gmail.com>
+- added libjpeg-devel, zlib-devel needed for Pillow installation
 * Tue Aug 7 2018 <perfguru87@gmail.com>
 - update to 0.0.20
 * Tue Aug 7 2018 <perfguru87@gmail.com>
