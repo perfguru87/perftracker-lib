@@ -1,6 +1,6 @@
 tag: login; score: 1.7; duration_sec: 15.3; metrics: sec; loops: 8; group: latency; category: 1 clients; less_better: true; # example with single score
 tag: login; score: 2.2; duration_sec: 15.4; metrics: sec; loops: 7; group: latency; category: 2 clients; less_better: true;
-tag: GET /; scores: [12.1, 12.2]; duration_sec: 15.0; metrics: rest/sec; loops: 182; group: throughput; category: 1 threads; # examples with multiple scores
-tag: GET /; scores: [52.2, 52.4]; duration_sec: 15.0; metrics: rest/sec; loops: 783; group: throughput; category: 4 threads;
+tag: GET /; scores: [12.1, 12.2]; duration_sec: 15.0; metrics: rest/sec; loops: 182; group: throughput; less_better: false; category: 1 threads; # examples with multiple scores
+tag: GET /; scores: [52.2, 52.4]; duration_sec: 15.0; metrics: rest/sec; loops: 783; group: throughput; less_better: false; category: 4 threads;
 tag: GET /users; scores: [24.0, 25.1]; duration_sec: 15.0; metrics: rest/sec; loops: 360; group: throughput; category: 1 threads;
 tag: GET /users; scores: [82.5, 21.2]; duration_sec: 15.0; metrics: rest/sec; loops: 1237; group: throughput; category: 4 threads;
