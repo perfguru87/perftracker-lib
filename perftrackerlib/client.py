@@ -272,7 +272,7 @@ class ptProduct:
 
 class ptSuite:
     def __init__(self, job_title='job title', project_name=None, cmdline=None,
-                 product_name=None, product_ver=None,
+                 product_name=None, product_ver=None, regression_name=None,
                  suite_name=None, suite_ver=None,
                  uuid1=None, append=False, replace=False, begin=None, end=None, links=None,
                  pt_server_url=PT_SERVER_DEFAULT_URL, save_to_file=None):
@@ -290,6 +290,7 @@ class ptSuite:
         self.cmdline = cmdline if cmdline else " ".join(map(pipes.quote, sys.argv))
         self.project_name = project_name
         self.product_name = product_name
+        self.regression_name = regression_name
         self.product_ver = product_ver
         self.suite_name = suite_name
         self.suite_ver = suite_ver
