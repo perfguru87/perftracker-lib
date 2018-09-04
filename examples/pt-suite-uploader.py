@@ -38,6 +38,10 @@ def execute(cmd, exc_on_err=True):
     return (status, stdout_text, stderr_text)
 
 
+def _bool(val):
+    return val in ("True", "true", True, "Yes", "yes", "y", 1)
+
+
 def run(suite, as_json, from_file, cmdline):
 
     if from_file:
@@ -78,7 +82,7 @@ def run(suite, as_json, from_file, cmdline):
                            loops=int(d['loops']),
                            metrics=d['metrics'],
                            cmdline=d.get('cmdline', ''),
-                           less_better=bool(d.get('less_better', False)),
+                           less_better=_bool(d.get('less_better', False)),
                            errors=int(d.get('errors', 0)),
                            warnings=int(d.get('warnings', 0)),
                            group=d.get('group', ''),
@@ -119,7 +123,7 @@ def run(suite, as_json, from_file, cmdline):
                     elif tag in ('tag', 'metrics', 'cmdline', 'group', 'category', 'description'):
                         test.__dict__[tag] = val
                     elif tag in ('less_better', ):
-                        test.__dict__[tag] = bool(val)
+                        test.__dict__[tag] = _bool(val)
                 except ValueError as e:
                     logging.error("error in line: %s" % line)
                     logging.error(str(e))
