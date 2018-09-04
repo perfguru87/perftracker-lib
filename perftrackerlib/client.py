@@ -137,8 +137,8 @@ class ptTest:
         assert self.status in TEST_STATUSES
 
     def __repr__(self):
-        return "ptTest('%s', group='%s', category='%s' scores=%s, duration_sec=%.1f, status=%s)" % \
-               (self.tag, self.group, self.category, str(self.scores), self.duration_sec, self.status)
+        return "ptTest('%s', group='%s', category='%s' scores=%s, duration_sec=%.1f, less_better=%s, status=%s)" % \
+               (self.tag, self.group, self.category, str(self.scores), self.duration_sec, str(self.less_better), self.status)
 
     def _execute_local(self, path=None, exc_on_err=False, log_file=None):
 
