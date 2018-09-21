@@ -5,3 +5,4 @@ psutil
 pycurl
 six
 Pillow
+python-dateutil
