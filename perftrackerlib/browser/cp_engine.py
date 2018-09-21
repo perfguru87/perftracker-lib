@@ -188,7 +188,7 @@ class CPEngineBase:
         return False
 
     def cp_get_menu_item_title(self, title_el):
-        return remove_html_tags(title_el.get_attribute("innerHTML"))
+        return remove_html_tags(title_el.get_attribute("innerHTML")).strip()
 
     def cp_get_menu_item_link_url(self, link_el):
         return ""
