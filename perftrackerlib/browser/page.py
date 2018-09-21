@@ -624,7 +624,7 @@ class PageStatsSummary:
                         "%4.0f" % ps.repeated_reqs if ps.repeated_reqs else "-",
                         "%4.0f" % ps.foreign_reqs if ps.foreign_reqs else "-",
                         "%.1f!" % (ps.errs_cnt) if ps.errs_cnt else "-"),
-                       "%.1f" % ps.size_bytes,
+                       "%.1f" % (ps.size_bytes / 1024.0),
                        "%.0f" % ps.dur_sec,
                        "%.0f" % ps.ram_usage_kb])
 
