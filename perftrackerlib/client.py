@@ -8,6 +8,9 @@ import inspect
 import logging
 import pipes
 import subprocess
+import bz2
+from dateutil import parser
+
 from dateutil.tz import tzlocal
 from collections import OrderedDict
 
@@ -64,6 +67,179 @@ class ptJsonEncoder(json.JSONEncoder):
                     pass
             j[key] = val
         return j
+
+    @staticmethod
+    def pretty(obj):
+        return json.dumps(obj, cls=ptJsonEncoder, sort_keys=True, indent=4, separators=(',', ': '))
+
+
+class ptServer:
+    def __init__(self, pt_server_url=PT_SERVER_DEFAULT_URL):
+        assert pt_server_url
+        self.url = None
+        self.api_url = None
+        self.setUrl(pt_server_url)
+
+    def setUrl(self, pt_server_url):
+        if not pt_server_url.startswith("http"):
+            logging.debug("adding http:// prefix to server url: %s" % pt_server_url)
+            pt_server_url = "http://%s" % pt_server_url
+        self.url = pt_server_url.rstrip("/")
+        self.api_url = "%s/api/v%s" % (self.url, API_VER)
+
+    def getProjectId(self, project_name):
+        if not project_name:
+            return None
+
+        resp = self.get("/0/project/")
+
+        if resp.status_code != httplib.OK:
+            raise ptRuntimeException("can't get the list of existing projects: %d, %s" % (j['http_status'], j.get('message', str(j))))
+
+        for project_json in resp.json:
+            if project_json['name'] == project_name:
+                return project_json['id']
+
+        msg = "\n".join(["project name validation failed, project '%s' doesn't exist" % project_name,
+                         "available projects are: %s" % (", ".join(["'%s'" % p['name'] for p in resp.json]))])
+        raise ptRuntimeException(msg)
+
+    def _http_request(self, method, url, decode_json=True, *args, **kwargs):
+
+        url = "%s/%s" % (self.api_url, url.lstrip("/"))
+
+        logging.debug("%s %s ..." % (method, url))
+
+        # FIXME: handle retry
+        headers = {'Content-Type': 'application/json'} if method == "GET" else {}
+        try:
+            response = requests.__dict__[method](url, headers=headers, *args, **kwargs)
+        except requests.exceptions.ConnectionError as e:
+            raise ptRuntimeException(str(e))
+
+        if decode_json or response.status_code != httplib.OK:
+            text = response.text.encode(response.encoding if response.encoding else 'utf-8')
+            try:
+                j = json.loads(text)
+                response.json = j
+            except ValueError as e:
+                raise ptRuntimeException("%s\nresponse:%s" % (str(e), str(text)))
+
+        if response.status_code == httplib.OK:
+            if logging.getLogger().getEffectiveLevel() >= logging.DEBUG:
+                if decode_json:
+                    logging.debug("%s %s ... response:\n%s" % (method, url, ptJsonEncoder.pretty(j)))
+                else:
+                    logging.debug("%s %s ... response size %d" % (method, url, len(response.content)))
+        else:
+            logging.error("%s %s status: %s, message: %s" % (method, url, response.status_code, j.get('message', ptJsonEncoder.pretty(j))))
+
+        return response
+
+    def post(self, url, decode_json=True, *args, **kwargs):
+        return self._http_request('post', url, decode_json=decode_json, *args, **kwargs)
+
+    def get(self, url, decode_json=True, *args, **kwargs):
+        return self._http_request('get', url, decode_json=decode_json, *args, **kwargs)
+
+    def delete(self, url, decode_json=True, *args, **kwargs):
+        return self._http_request('delete', url, decode_json=decode_json, *args, **kwargs)
+
+    def patch(self, url, decode_json=True, *args, **kwargs):
+        return self._http_request('patch', url, decode_json=decode_json, *args, **kwargs)
+
+
+class ptArtifact:
+    def __init__(self, pt_server, uuid1=None):
+        assert isinstance(pt_server, ptServer)
+
+        self.uuid = uuid1 if uuid1 else uuid.uuid1()
+        self.mime = 'application/octet-stream'
+        self.size = 0
+        self.filename = ''
+        self.description = ''
+        self.ttl_bytes = 180
+        self.uploaded_dt = datetime.datetime.now()
+        self.expires_dt = datetime.datetime.now() + datetime.timedelta(days=self.ttl_bytes)
+        self.inline = False
+        self.compression = False
+
+        self._pt_server = pt_server
+        self._url_list = "/0/artifact/"
+        self._url = "/0/artifact/%s" % (self.uuid)
+        self._url_download = "/0/artifact_content/%s" % (self.uuid)
+
+    def delete(self):
+        return self._pt_server.delete(self._url)
+
+    def info(self):
+        return self._pt_server.get(self._url)
+
+    def link(self, uuids):
+        assert type(uuids) is list
+        data = {'linked_uuids': json.dumps(uuids)}
+        return self._pt_server.post(self._url, data=data)
+
+    def unlink(self, uuids):
+        assert type(uuids) is list
+        data = {'unlinked_uuids': json.dumps(uuids)}
+        return self._pt_server.post(self._url, data=data)
+
+    def update(self, filename=''):
+        assert self.uuid is not None
+        data = {'description': self.description, 'ttl_days': self.ttl_days, 'mime': self.mime,
+                'filename': self.filename, 'inline':self.inline}
+
+        return self._pt_server.post(self._url, data=data)
+
+    def upload(self, filepath):
+        assert self.uuid is not None
+
+        f = open(filepath, 'rb')
+        if self.compression:
+            data = bz2.compress(f.read())
+        else:
+            data = f.read()
+        f.close()
+
+        files = {'file': data}
+        data = {'description': self.description, 'ttl_days': self.ttl_days, 'mime': self.mime,
+                'filename': self.filename, 'inline': self.inline, 'compression': self.compression}
+
+        return self._pt_server.post(self._url, files=files, data=data)
+
+    def list(self, limit=10, offset=0):
+        resp = self._pt_server.get(self._url_list)
+        if resp.status_code != httplib.OK:
+            return resp, []
+
+        ret = []
+
+        def _bool(val):
+            return val in ("True", "true", True, "Yes", "yes", "y", 1)
+
+        for item in resp.json:
+            a = ptArtifact(self._pt_server, uuid1=item['uuid'])
+            a.ttl_days = int(item['ttl_days'])
+            a.description = item['description']
+            a.uploaded_dt = parser.parse(item['uploaded_dt'])
+            a.expires_dt = parser.parse(item['expires_dt'])
+            a.mime = item['mime']
+            a.filename = item['filename']
+            a.size = int(item['size'])
+            a.inline = _bool(item['inline'])
+            a.compression = _bool(item['compression'])
+            ret.append(a)
+
+        return resp, ret
+
+    def download(self, filepath):
+        resp = self._pt_server.get(self._url_download, decode_json=False)
+        if resp.status_code == httplib.OK:
+            f = open(filepath, 'wb')
+            f.write(resp.content)
+            f.close()
+        return resp
 
 
 class ptTest:
@@ -204,6 +380,9 @@ class ptTest:
     def add_deviation(self, dev):
         self.scores.append(pt_float(dev))
 
+    def add_artifact(self, artifact):
+        assert isinstance(artifact, ptArtifact)
+        artifact.link(self.uuid)
 
 class ptEnvNode:
     def __init__(self, name, version=None, node_type=None, ip=None, hostname=None, params=None, cpus=0,
@@ -289,6 +468,7 @@ class ptSuite:
         self.job_title = job_title
         self.cmdline = cmdline if cmdline else " ".join(map(pipes.quote, sys.argv))
         self.project_name = project_name
+        self.project_id = None
         self.product_name = product_name
         self.regression_name = regression_name
         self.product_ver = product_ver
@@ -311,7 +491,7 @@ class ptSuite:
         self.tests = []
         self._key2test = {}
 
-        self.pt_server_url = pt_server_url.rstrip("/") if pt_server_url else PT_SERVER_DEFAULT_URL
+        self.pt_server = ptServer(pt_server_url)
         self.save_to_file = save_to_file
         self._pt_options_added = False
 
@@ -354,37 +534,12 @@ class ptSuite:
             return json.dumps(self, cls=ptJsonEncoder, indent=4, separators=(',', ': '))
         return json.dumps(self, cls=ptJsonEncoder)
 
-    def _genApiUrl(self, url):
-        assert self.pt_server_url
-        if not self.pt_server_url.startswith("http"):
-            logging.debug("adding http:// prefix to server url: %s" % self.pt_server_url)
-            self.pt_server_url = "http://%s" % self.pt_server_url
-        url = url.lstrip("/")
-        return "%s/api/v%s/%s" % (self.pt_server_url, API_VER, url)
-
     def validateProjectName(self):
         if not self.project_name:
             return
-
-        url = self._genApiUrl("/0/project/")
-        try:
-            response = requests.get(url, headers={'content-type': 'application/json'})
-        except requests.exceptions.ConnectionError as exc:
-            logging.error("Connection error: %s" % str(exc))
-            return False
-
-        if response.status_code != httplib.OK:
-            logging.error("can't get the list of existing projects: %d, %s" % (response.status_code, response.text))
+        self.project_id = self.pt_server.getProjectId(self.project_name)
+        if self.project_id is None:
             sys.exit(-1)
-
-        json_data = json.loads(response.text)
-        for j in json_data:
-            if j['name'] == self.project_name:
-                return
-
-        logging.error("project name validation failed, project '%s' doesn't exist")
-        logging.error("available projects are: %s" % (", ".join(["'%s'" % p['name'] for p in json_data])))
-        sys.exit(-1)
 
     def upload(self):
         if not self.project_name:
@@ -411,27 +566,22 @@ class ptSuite:
 
         json_data = self.toJson()
 
-        url = self._genApiUrl('1/job/')
-        logging.debug("posting data to %s:\n%s" % (url, json_prettified))
+        logging.debug("posting data to %s:\n%s" % ('/%d/job/' % self.project_id, json_prettified))
 
-        try:
-            response = requests.post(url, data=json_data, headers={'content-type': 'application/json'})
-        except requests.exceptions.ConnectionError as exc:
-            logging.error("Connection error: %s" % str(exc))
-            return False
+        response = self.pt_server.post('%d/job/' % self.project_id, decode_json=False, data=json_data)
 
         if response.status_code != httplib.OK:
-            logging.error("job json uploaded to %s: status %d, %s" % (url, response.status_code, response.text))
+            logging.error("job json upload to %s: status %d, %s" % (url, response.status_code, response.text))
             raise ptRuntimeException("Suite run results upload failed, url: %s status %d:\n%s" %
                                      (url, response.status_code, response.text))
-        logging.info("job json uploaded to %s: status %d, %s" % (url, response.status_code, response.text))
+        logging.info("status %d - job json uploaded, %s" % (response.status_code, response.text))
         return True
 
     def addOptions(self, option_parser, pt_url=None, pt_project=None):
         self._pt_options_added = True
         if pt_url is not None:
             logging.error("the addOptions(pt_url=...) is deprecated, use ptSuite(pt_server_url=...)")
-            self.pt_server_url = pt_url.rstrip('/')
+            self.pt_server.setUrl(pt_url)
         if pt_project is not None:
             logging.error("the addOptions(pt_project=...) is deprecated, use ptSuite(project_name=...)")
             self.project_name = pt_project
@@ -439,7 +589,7 @@ class ptSuite:
         g = optparse.OptionGroup(option_parser, "PerfTracker options")
         g.add_option("--pt-to-file", type="str", help="Dump the job results json to a file instead of upload")
         g.add_option("--pt-project", type="str", help="The PerfTracker project name", default=self.project_name)
-        g.add_option("--pt-url", type="str", help="The PerfTracker portal URL, default: %default", default=self.pt_server_url)
+        g.add_option("--pt-url", type="str", help="The PerfTracker portal URL, default: %default", default=self.pt_server.url)
         g.add_option("--pt-replace", type="str",  help="replace tests results in the job with given UUID")
         g.add_option("--pt-append", type="str", help="append tests results to the job with given UUID")
         g.add_option("--pt-title", type="str",  help="PerfTracker job title to be used")
@@ -460,7 +610,7 @@ class ptSuite:
         if _exists(options, 'pt_to_file'):
             self.save_to_file = options.pt_to_file
         if _exists(options, 'pt_url'):
-            self.pt_server_url = options.pt_url.rstrip('/')
+            self.pt_server.setUrl(options.pt_url)
         if _exists(options, 'pt_replace'):
             self.uuid = options.pt_replace
             self.replace = True
