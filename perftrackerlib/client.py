@@ -9,7 +9,11 @@ import logging
 import pipes
 import subprocess
 import bz2
+import random
+from math import sqrt
 from dateutil import parser
+
+from optparse import OptionParser, OptionGroup
 
 from dateutil.tz import tzlocal
 from collections import OrderedDict
@@ -645,3 +649,52 @@ class ptSuite:
             self.append = True
 
         self.validateProjectName()
+
+
+##############################################################################
+# Autotests
+##############################################################################
+
+def _coverage():
+    suite = ptSuite(suite_ver="1.0.0", product_name="My web app", product_ver="1.0-1234",
+                    project_name="Test", uuid1="11111111-2222-11e8-85cb-8c85907924aa")
+
+    op = OptionParser("PerfTracker suite example")
+
+    suite.addOptions(op)
+    opts, args = op.parse_args()
+    suite.handleOptions(opts)
+
+    logging.basicConfig(level=logging.DEBUG)
+
+    suite.addLink('Grafana', 'http://grafana.localdomain/')
+
+    s1 = suite.addNode(ptHost("s1", ip="192.168.0.1", hostname="server1.domain", version="RHEL7.4", cpus=8, ram_gb=8))
+    s2 = suite.addNode(ptHost("s2", ip="192.168.0.2", hostname="server2.domain", version="RHEL7.4", cpus=8, ram_gb=8))
+
+    vm1 = s1.addNode(ptVM("vm1", ip="192.168.100.1", version="CentOS 7.4", virt_type="KVM VM", cpus=4, ram_gb=32))
+    vm2 = s1.addNode(ptVM("vm2", ip="192.168.100.2", version="CentOS 7.4", virt_type="KVM VM", cpus=4, ram_gb=32))
+
+    vm1.addNode(ptComponent("backend", version="1.2.3"))
+    vm2.addNode(ptComponent("database", version="10.0"))
+
+    for p in range(1, 5 + random.randint(0, 2)):
+        suite.addTest(ptTest("Login time", group="Latency tests", metrics="sec", less_better=True,
+                             category="%d parallel users" % (2 ** p),
+                             scores=[0.3 + sqrt(p) + random.randint(0, 20) / 40.0]))
+
+    for p in range(1, 5 + random.randint(0, 2)):
+        suite.addTest(ptTest("Home page throughput", group="Throughput tests", metrics="pages/sec",
+                             category="%d parallel clients" % (2 ** p),
+                             scores=[10 + sqrt(p) + random.randint(0, 20) / 5]))
+
+    suite.upload()
+    print("Done, job: %s" % suite.uuid)
+
+
+if __name__ == "__main__":
+    try:
+        _coverage()
+    except ptRuntimeException as e:
+        print(e)
+        sys.exit(-1)
