@@ -168,8 +168,9 @@ class ptServer:
 
 class ptArtifact:
     def __init__(self, pt_server, uuid1=None, filename='', description='', ttl_days=180,
-                 inline=False, compression=False):
+                 inline=False, compression=False, linked_uuids=None):
         assert isinstance(pt_server, ptServer)
+        assert linked_uuids is None or type(linked_uuids) is list
 
         self.uuid = uuid1 if uuid1 else uuid.uuid1()
         self.mime = 'application/octet-stream'
@@ -181,6 +182,8 @@ class ptArtifact:
         self.expires_dt = datetime.datetime.now() + datetime.timedelta(days=self.ttl_days)
         self.inline = inline
         self.compression = compression
+        self.linked_uuids = set([str(u) for u in linked_uuids]) if linked_uuids else set()
+        self.unlinked_uuids = set()
 
         self._pt_server = pt_server
         self._url_list = "/0/artifact/"
@@ -195,18 +198,28 @@ class ptArtifact:
 
     def link(self, uuids):
         assert type(uuids) is list
-        data = {'linked_uuids': json.dumps(uuids)}
+        uuids = [str(u) for u in uuids]
+        self.linked_uuids |= set(uuids)
+        data = {'linked_uuids': json.dumps(list(self.linked_uuids))}
         return self._pt_server.post(self._url, data=data)
 
     def unlink(self, uuids):
         assert type(uuids) is list
-        data = {'unlinked_uuids': json.dumps(uuids)}
+        uuids = [str(u) for u in uuids]
+        self.linked_uuids |= set(uuids)
+        self.ulinked_uuids -= set(uuids)
+        data = {'unlinked_uuids': json.dumps(list(self.unlinked_uuids))}
         return self._pt_server.post(self._url, data=data)
 
     def update(self):
         assert self.uuid is not None
+
+        # FIXME: copy-paste
         data = {'description': self.description, 'ttl_days': self.ttl_days, 'mime': self.mime,
-                'filename': self.filename, 'inline': self.inline}
+                'filename': self.filename, 'inline': self.inline,
+                'linked_uuids': json.dumps(list(self.linked_uuids)),
+                'unlinked_uuids': json.dumps(list(self.unlinked_uuids))
+                }
 
         return self._pt_server.post(self._url, data=data)
 
@@ -224,8 +237,13 @@ class ptArtifact:
         f.close()
 
         files = {'file': data}
+
+        # FIXME: copy-paste
         data = {'description': self.description, 'ttl_days': self.ttl_days, 'mime': self.mime,
-                'filename': self.filename, 'inline': self.inline, 'compression': self.compression}
+                'filename': self.filename, 'inline': self.inline, 'compression': self.compression,
+                'linked_uuids': json.dumps(list(self.linked_uuids)),
+                'unlinked_uuids': json.dumps(list(self.unlinked_uuids))
+                }
 
         return self._pt_server.post(self._url, files=files, data=data)
 
@@ -409,7 +427,7 @@ class ptTest:
 
     def add_artifact(self, artifact):
         assert isinstance(artifact, ptArtifact)
-        artifact.link(self.uuid)
+        artifact.link([self.uuid])
 
 
 class ptEnvNode:
@@ -678,9 +696,11 @@ class ptSuite:
             self._stdout_filename = Tee('stdout').filename
             self._stderr_filename = Tee('stderr').filename
             self._stdout_artifact = ptArtifact(self.pt_server, filename="stdout.txt", inline=True,
-                                               compression=False, ttl_days=options.pt_log_ttl)
+                                               compression=False, ttl_days=options.pt_log_ttl,
+                                               linked_uuids=[self.uuid])
             self._stderr_artifact = ptArtifact(self.pt_server, filename="stderr.txt", inline=True,
-                                               compression=False, ttl_days=options.pt_log_ttl)
+                                               compression=False, ttl_days=options.pt_log_ttl,
+                                               linked_uuids=[self.uuid])
 
         self.validateProjectName()
 
