@@ -91,7 +91,7 @@ def run(opts, args, abort):
     elif args[0] == "list":
         try:
             limit = int(args[1]) if len(args) >= 2 else 10
-        except ValueError, e:
+        except ValueError as e:
             abort("list limit must be a number, got: '%s'" % str(args[1]))
         resp, artifacts = ptArtifact(pt_server).list(limit)
 
@@ -129,7 +129,7 @@ def main():
     """
 
     op = OptionParser(description=description, usage=usage, formatter=formatter())
-    op.add_option("-v", "--verbose", action="count", help="enable verbose mode")
+    op.add_option("-v", "--verbose", default=0, action="count", help="enable verbose mode")
     op.add_option("-p", "--pt-server-url", default="http://127.0.0.1:9000", help="perftracker url, default %default")
 
     og = OptionGroup(op, "'upload' and 'update' options")
