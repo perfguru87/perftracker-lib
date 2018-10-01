@@ -168,12 +168,12 @@ class ptServer:
 
 class ptArtifact:
     def __init__(self, pt_server, uuid1=None, filename='', description='', ttl_days=180,
-                 inline=False, compression=False, linked_uuids=None):
+                 mime=None, inline=False, compression=False, linked_uuids=None):
         assert isinstance(pt_server, ptServer)
         assert linked_uuids is None or type(linked_uuids) is list
 
         self.uuid = uuid1 if uuid1 else uuid.uuid1()
-        self.mime = 'application/octet-stream'
+        self.mime = mime  # None means auto
         self.size = 0
         self.filename = filename
         self.description = description
