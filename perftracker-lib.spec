@@ -39,6 +39,7 @@ echo -e "\n====== The perftracker-lib uninstallation done =========\n"
 
 %ghost
 /bin/pt-suite-uploader.py
+/bin/pt-artifact-ctl.py
 
 %changelog
 * Tue Oct 2 2018 <perfguru87@gmail.com>
