@@ -16,6 +16,7 @@ from dateutil import parser
 
 from optparse import OptionParser, OptionGroup
 
+from perftrackerlib.helpers.tee import Tee
 from dateutil.tz import tzlocal
 from collections import OrderedDict
 
@@ -159,19 +160,20 @@ class ptServer:
 
 
 class ptArtifact:
-    def __init__(self, pt_server, uuid1=None):
+    def __init__(self, pt_server, uuid1=None, filename='', description='', ttl_days=180,
+                 inline=False, compression=False):
         assert isinstance(pt_server, ptServer)
 
         self.uuid = uuid1 if uuid1 else uuid.uuid1()
         self.mime = 'application/octet-stream'
         self.size = 0
-        self.filename = ''
-        self.description = ''
-        self.ttl_days = 180
+        self.filename = filename
+        self.description = description
+        self.ttl_days = ttl_days
         self.uploaded_dt = datetime.datetime.now()
         self.expires_dt = datetime.datetime.now() + datetime.timedelta(days=self.ttl_days)
-        self.inline = False
-        self.compression = False
+        self.inline = inline
+        self.compression = compression
 
         self._pt_server = pt_server
         self._url_list = "/0/artifact/"
@@ -515,6 +517,11 @@ class ptSuite:
         self.save_to_file = save_to_file
         self._pt_options_added = False
 
+        self._stdout_filename = None
+        self._stderr_filename = None
+        self._stdout_artifact = None
+        self._stderr_artifact = None
+
         self.validate()
 
     def validate(self):
@@ -622,6 +629,10 @@ class ptSuite:
         g.add_option("--pt-regression-name", type="str", help="PerfTracker suite regression name")
         g.add_option("--pt-product-version", type="str", help="The version of the product being tested")
         g.add_option("--pt-product-name", type="str", help="The name of the product being tested")
+        g.add_option("--pt-log-upload", action="store_true",
+                     help="Upload stdout & stderr to perftracker and attach to the job")
+        g.add_option("--pt-log-ttl", type="int", default=180,
+                     help="stdout & stderr logs time to live (days), default %default")
         option_parser.add_option_group(g)
 
     def handleOptions(self, options):
@@ -655,8 +666,24 @@ class ptSuite:
         if _exists(options, 'pt_append'):
             self.uuid = options.pt_append
             self.append = True
+        if _exists(options, 'pt_log_upload'):
+            self._stdout_filename = Tee('stdout').filename
+            self._stderr_filename = Tee('stderr').filename
+            self._stdout_artifact = ptArtifact(self.pt_server, filename="stdout.txt", inline=True,
+                                               compression=False, ttl_days=options.pt_log_ttl)
+            self._stderr_artifact = ptArtifact(self.pt_server, filename="stderr.txt", inline=True,
+                                               compression=False, ttl_days=options.pt_log_ttl)
 
         self.validateProjectName()
+
+    def fini(self):
+        if self._stdout_artifact and os.path.getsize(self._stdout_filename):
+            self._stdout_artifact.upload(self._stdout_filename)
+        if self._stderr_artifact and os.path.getsize(self._stderr_filename):
+            self._stderr_artifact.upload(self._stderr_filename)
+
+    def __del__(self):
+        self.fini()
 
 
 ##############################################################################
@@ -671,6 +698,7 @@ def _coverage():
 
     suite.addOptions(op)
     opts, args = op.parse_args()
+    opts.pt_log_upload = True
     suite.handleOptions(opts)
 
     logging.basicConfig(level=logging.DEBUG)
