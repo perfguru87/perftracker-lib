@@ -21,6 +21,7 @@ perftracker client, the UI crawler library and other helpers)
 %install
 mkdir $RPM_BUILD_ROOT/bin
 touch $RPM_BUILD_ROOT/bin/pt-suite-uploader.py
+touch $RPM_BUILD_ROOT/bin/pt-artifact-ctl.py
 
 %post
 echo -e "\n====== Installing the perftracker-lib v%{_ver} from sources =======\n"
@@ -40,6 +41,8 @@ echo -e "\n====== The perftracker-lib uninstallation done =========\n"
 /bin/pt-suite-uploader.py
 
 %changelog
+* Tue Oct 2 2018 <perfguru87@gmail.com>
+- added pt-artifact-ctl.py - a tool to manage artifacts
 * Thu Aug 16 2018 <perfguru87@gmail.com>
 - added libjpeg-devel, zlib-devel needed for Pillow installation
 * Tue Aug 7 2018 <perfguru87@gmail.com>
