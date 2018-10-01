@@ -1,3 +1,10 @@
+from __future__ import print_function, absolute_import
+
+# -*- coding: utf-8 -*-
+__author__ = "perfguru87@gmail.com"
+__copyright__ = "Copyright 2018, The PerfTracker project"
+__license__ = "MIT"
+
 import sys
 import os
 import optparse
