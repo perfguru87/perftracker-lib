@@ -31,6 +31,15 @@ libs = [("perftrackerlib/client.py", 73),
         ]
 
 
+tests = [("./examples/pt-artifact-ctl.py list"),
+         ("./examples/pt-artifact-ctl.py upload ./test.py 11111111-4444-11e8-85cb-8c85907924ab -iz"),
+         ("./examples/pt-artifact-ctl.py info 11111111-4444-11e8-85cb-8c85907924ab"),
+         ("./examples/pt-artifact-ctl.py update 11111111-4444-11e8-85cb-8c85907924ab --description=desc -t 0"),
+         ("./examples/pt-artifact-ctl.py link "
+          "11111111-4444-11e8-85cb-8c85907924ab 11111111-3333-11e8-85cb-8c85907924ab"),
+         ]
+
+
 def test_one(cmdline):
     print("Testing: %s ..." % cmdline, end=' ')
     sys.stdout.flush()
@@ -75,6 +84,10 @@ def test_all():
 
     for lib, coverage_target in libs:
         coverage_one(lib, coverage_target)
+
+    for test in tests:
+        test_one("python2.7 %s" % test)
+        test_one("python3 %s" % test)
 
     for lib, _ in libs:
         mod = lib2mod(lib)
