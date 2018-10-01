@@ -60,6 +60,8 @@ python3 ./examples/pt-suite-uploader.py -- /bin/echo "tag: my test; score: 2.3;"
 ### Manage artifacts (i.e. jobs and tests attachments)
 
 The perftracker server supports [artifact management](https://github.com/perfguru87/perftracker)
+An artifact is a file which can be stored as blob file and linked to test or job run, for example
+it can be test or job log, dump or some test data. Many to many links are allowed
 
 There are three ways how clients can managet the artifacts:
 1. perftracker REST API
