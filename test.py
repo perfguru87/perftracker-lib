@@ -37,6 +37,12 @@ tests = [("./examples/pt-artifact-ctl.py list"),
          ("./examples/pt-artifact-ctl.py update 11111111-4444-11e8-85cb-8c85907924ab --description=desc -t 0"),
          ("./examples/pt-artifact-ctl.py link "
           "11111111-4444-11e8-85cb-8c85907924ab 11111111-3333-11e8-85cb-8c85907924ab"),
+         ("./examples/pt-artifact-ctl.py unlink "
+          "11111111-4444-11e8-85cb-8c85907924ab 11111111-3333-11e8-85cb-8c85907924ab"),
+         ("./examples/pt-suite-uploader.py -f ./examples/data/sample.txt --pt-project Test --pt-replace "
+          "11111111-5555-11e8-85cb-8c85907924ab"),
+         ("./examples/pt-suite-uploader.py -f ./examples/data/sample.json -j --pt-project Test --pt-replace "
+          "11111111-5555-11e8-85cb-8c85907924ab"),
          ]
 
 
