@@ -696,10 +696,10 @@ class ptSuite:
             self._stdout_filename = Tee('stdout').filename
             self._stderr_filename = Tee('stderr').filename
             self._stdout_artifact = ptArtifact(self.pt_server, filename="stdout.txt", inline=True,
-                                               compression=False, ttl_days=options.pt_log_ttl,
+                                               compression=True, ttl_days=options.pt_log_ttl,
                                                linked_uuids=[self.uuid])
             self._stderr_artifact = ptArtifact(self.pt_server, filename="stderr.txt", inline=True,
-                                               compression=False, ttl_days=options.pt_log_ttl,
+                                               compression=True, ttl_days=options.pt_log_ttl,
                                                linked_uuids=[self.uuid])
 
         self.validateProjectName()
