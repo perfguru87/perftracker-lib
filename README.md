@@ -45,7 +45,7 @@ Run selenium-based test on a real WordPress Admin panel:
 python3 ./examples/pt-wp-crawler.py -m -U admin -P pass https://demos1.softaculous.com/WordPress/wp-login.php
 ```
 
-### Upload pre-generated files with results:
+### Upload pre-generated files with tests results:
 
 Sometimes you don't want to write a python suite and just grab some files and export results. In this case
 you can use the pt-suite-uploader.py tool to parse test/json files (or even launch an external tool) and then
@@ -55,6 +55,63 @@ python3 ./examples/pt-suite-uploader.py -f ./examples/data/sample.txt
 python3 ./examples/pt-suite-uploader.py -f -j ./examples/data/sample.json
 python3 ./examples/pt-suite-uploader.py -- /bin/echo "tag: my test; score: 2.3;"
 ...
+```
+
+### Manage artifacts (i.e. jobs and tests attachments)
+
+The perftracker server supports [artifact management](https://github.com/perfguru87/perftracker)
+
+There are three ways how clients can managet the artifacts:
+1. perftracker REST API
+2. perftrackerlib/client.py - ptArfitact() class
+3. the examples/pt-artifact-ctl.py tool (see --help)
+
+Short introuduction to pt-artifact-ctl.py:
+
+a) Help
+
+```
+pt-artifact-ctl.py --help
+Usage: pt-artifact-ctl.py [options] command [command parameters]
+
+Description:
+    pt-artifact-ctl.py [options] upload ARTIFACT_FILE_TO_UPLOAD [ARTIFACT_UUID]
+    pt-artifact-ctl.py [options] update ARTIFACT_UUID
+    pt-artifact-ctl.py [options] delete ARTIFACT_UUID
+    pt-artifact-ctl.py [options] info ARTIFACT_UUID
+    pt-artifact-ctl.py [options] link ARTIFACT_UUID OBJECT_UUID
+    pt-artifact-ctl.py [options] unlink ARTIFACT_UUID OBJECT_UUID
+    pt-artifact-ctl.py [options] list [LIMIT]
+    pt-artifact-ctl.py [options] download ARTIFACT_UUID ARTIFACT_FILE_TO_SAVE
+
+Options:
+  -h, --help                  show this help message and exit
+  -v, --verbose               enable verbose mode
+  -p PT_SERVER_URL, --pt-server-url=PT_SERVER_URL
+                              perftracker url, default http://127.0.0.1:9000
+  -d DESCRIPTION, --description=DESCRIPTION
+                              artifact description (i
+  -m MIME, --mime=MIME        artifact mime type, default is guessed or
+                              'application/octet-stream'
+  -f FILENAME, --filename=FILENAME
+                              override artifact file name by given name
+  -z, --compression           inline decompression on every file view or
+                              download
+  -i, --inline                inline view in browser (do not download on click)
+  -t TTL, --ttl=TTL           time to live (days), default=180, 0 - infinite
+```
+
+b) Upload an artifact and link in to the test with uuid = $TEST_UUID
+
+```
+./pt-artifact-ctl.py upload ~/my_test.log
+./pt-artifact-ctl.py link $ARTIFACT_UUID $TEST_UUID
+```
+
+c) Upload an artifact, set infinite time to live, enable dynamic compression and enable inline view in the browser
+
+```
+./pt-artifact-ctl.py upload ~/my_test.log -iz -t 0
 ```
 
 ## Contributing a patch
