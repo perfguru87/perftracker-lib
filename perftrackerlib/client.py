@@ -80,8 +80,9 @@ class ptJsonEncoder(json.JSONEncoder):
 
 
 class ptServer:
-    def __init__(self, pt_server_url=PT_SERVER_DEFAULT_URL):
-        assert pt_server_url
+    def __init__(self, pt_server_url=None):
+        if pt_server_url is None:
+            pt_server_url = PT_SERVER_DEFAULT_URL
         self.url = None
         self.api_url = None
         self.setUrl(pt_server_url)
