@@ -24,6 +24,7 @@ PT_SERVER_DEFAULT_URL = "http://127.0.0.1:9000"
 
 TEST_STATUSES = ['NOTTESTED', 'SKIPPED', 'INPROGRESS', 'SUCCESS', 'FAILED']
 
+
 def pt_float(value):
     if value > 100 or value < -100:
         return int(round(value))
@@ -94,7 +95,8 @@ class ptServer:
         resp = self.get("/0/project/")
 
         if resp.status_code != httplib.OK:
-            raise ptRuntimeException("can't get the list of existing projects: %d, %s" % (j['http_status'], j.get('message', str(j))))
+            raise ptRuntimeException("can't get the list of existing projects: %d, %s" %
+                                     (j['http_status'], j.get('message', str(j))))
 
         for project_json in resp.json:
             if project_json['name'] == project_name:
@@ -132,7 +134,8 @@ class ptServer:
                 else:
                     logging.debug("%s %s ... response size %d" % (method, url, len(response.content)))
         else:
-            logging.error("%s %s status: %s, message: %s" % (method, url, response.status_code, j.get('message', ptJsonEncoder.pretty(j))))
+            logging.error("%s %s status: %s, message: %s" %
+                          (method, url, response.status_code, j.get('message', ptJsonEncoder.pretty(j))))
 
         return response
 
@@ -188,7 +191,7 @@ class ptArtifact:
     def update(self, filename=''):
         assert self.uuid is not None
         data = {'description': self.description, 'ttl_days': self.ttl_days, 'mime': self.mime,
-                'filename': self.filename, 'inline':self.inline}
+                'filename': self.filename, 'inline': self.inline}
 
         return self._pt_server.post(self._url, data=data)
 
@@ -244,25 +247,28 @@ class ptArtifact:
 
 class ptTest:
     def __init__(self, tag, uuid1=None, group=None, binary=None, cmdline=None, description=None,
-                loops=None, scores=None, deviations=None, category=None, metrics="loops/sec",
-                links=None, attribs=None, less_better=False, errors=None, warnings=None,
-                begin=None, end=None, duration_sec=0, status='SUCCESS'):
+                 loops=None, scores=None, deviations=None, category=None, metrics="loops/sec",
+                 links=None, attribs=None, less_better=False, errors=None, warnings=None,
+                 begin=None, end=None, duration_sec=0, status='SUCCESS'):
         """
         tag         - keyword used to match tests results in different suites: hdd sequential read
         group       - test group: memory, disk, cpu, ...)
         binary      - test binary: hdd_seq_read.exe
         cmdline     - test command line: -f /root/file/ -O 100M -s 1
-        description - test description: disk sequential read test\nCreates /root/file with 100MB size and do sequential read by 1MB in a loop
+        description - test description: disk seq read test\nCreates /root/file with 100MB size
+                      and do sequential read by 1MB in a loop
         scores      - test iteration scores: [12.21, 14.23, 12.94]
         deviations  - test iteration deviatons: [0.02, 0.03, 0.01]
         loops       - test loops: 1000
         category    - test category to be used in charts: 1-thread
         metrics     - test metrics: MB/s
-        links       - arbitrary links to other systems: {'test logs': 'http://logs.localdomain/231241.log', 'grafana': 'http://grafana.localdomain/cluster3'}
+        links       - arbitrary links to other systems:
+                      {'test logs': 'http://logs.domain/231241.log', 'grafana': 'http://grafana.domain/cluster3'}
         attribs     - set of test attributes: {'version': '12.4', 'branch': 'mybranch'}
         less_better - set to True if the less is value the better
         errors      - total number or list of errors: ['failed to create a file, permission denied']
-        warnings    - total number or list of warnings: ['I/O request timed out, retrying....', 'I/O request timed out, retrying...']
+        warnings    - total number or list of warnings: ['I/O request timed out, retrying....',
+                      'I/O request timed out, retrying...']
         begin       - time when the test started in datetime.datetime format
         end         - time when the test ended in datetime.datetime format
         duration_sec - test duration (sec)
@@ -314,7 +320,8 @@ class ptTest:
 
     def __repr__(self):
         return "ptTest('%s', group='%s', category='%s' scores=%s, duration_sec=%.1f, less_better=%s, status=%s)" % \
-               (self.tag, self.group, self.category, str(self.scores), self.duration_sec, str(self.less_better), self.status)
+               (self.tag, self.group, self.category, str(self.scores),
+                self.duration_sec, str(self.less_better), self.status)
 
     def _execute_local(self, path=None, exc_on_err=False, log_file=None):
 
@@ -346,7 +353,8 @@ class ptTest:
 
         status = p.returncode
         if status and exc_on_err:
-            raise RuntimeError("'%s' execution failed with status %d:\n%s\n%s" % (cmd, status, stdout_text, stderr_text))
+            raise RuntimeError("'%s' execution failed with status %d:\n%s\n%s" %
+                               (cmd, status, stdout_text, stderr_text))
         logging.debug("'%s' status %d, stdout:\n%s\nstderr:\n%s" % (cmd, status, stdout_text, stderr_text))
 
         return (status, stdout_text, stderr_text)
@@ -384,6 +392,7 @@ class ptTest:
         assert isinstance(artifact, ptArtifact)
         artifact.link(self.uuid)
 
+
 class ptEnvNode:
     def __init__(self, name, version=None, node_type=None, ip=None, hostname=None, params=None, cpus=0,
                  ram_mb=0, ram_gb=0, disk_gb=0, links=None):
@@ -415,8 +424,10 @@ class ptEnvNode:
         self.children.append(node)
         return node
 
+
 class ptHost(ptEnvNode):
-    def __init__(self, name, model=None, hw_uuid=None, serial_num=None, numa_nodes=None, ram_info=None, cpu_info=None, **kwargs):
+    def __init__(self, name, model=None, hw_uuid=None, serial_num=None, numa_nodes=None,
+                 ram_info=None, cpu_info=None, **kwargs):
         ptEnvNode.__init__(self, name, **kwargs)
         self.node_type = "Host"
         self.model = model
@@ -557,8 +568,8 @@ class ptSuite:
 
         if self.save_to_file:
             if self.save_to_file == "-":
-                print ("Job json:")
-                print (json_prettified)
+                print("Job json:")
+                print(json_prettified)
             else:
                 with open(self.save_to_file, 'w') as f:
                     f.write(json_prettified)
@@ -589,13 +600,14 @@ class ptSuite:
         g = optparse.OptionGroup(option_parser, "PerfTracker options")
         g.add_option("--pt-to-file", type="str", help="Dump the job results json to a file instead of upload")
         g.add_option("--pt-project", type="str", help="The PerfTracker project name", default=self.project_name)
-        g.add_option("--pt-url", type="str", help="The PerfTracker portal URL, default: %default", default=self.pt_server.url)
-        g.add_option("--pt-replace", type="str",  help="replace tests results in the job with given UUID")
+        g.add_option("--pt-url", type="str", help="The PerfTracker portal URL, default: %default",
+                     default=self.pt_server.url)
+        g.add_option("--pt-replace", type="str", help="replace tests results in the job with given UUID")
         g.add_option("--pt-append", type="str", help="append tests results to the job with given UUID")
-        g.add_option("--pt-title", type="str",  help="PerfTracker job title to be used")
-        g.add_option("--pt-version", type="str",  help="PerfTracker suite version")
-        g.add_option("--pt-regression-tag", type="str",  help="PerfTracker suite regression tag")
-        g.add_option("--pt-regression-name", type="str",  help="PerfTracker suite regression name")
+        g.add_option("--pt-title", type="str", help="PerfTracker job title to be used")
+        g.add_option("--pt-version", type="str", help="PerfTracker suite version")
+        g.add_option("--pt-regression-tag", type="str", help="PerfTracker suite regression tag")
+        g.add_option("--pt-regression-name", type="str", help="PerfTracker suite regression name")
         g.add_option("--pt-product-version", type="str", help="The version of the product being tested")
         g.add_option("--pt-product-name", type="str", help="The name of the product being tested")
         option_parser.add_option_group(g)
