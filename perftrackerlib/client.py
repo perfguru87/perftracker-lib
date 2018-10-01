@@ -1,4 +1,5 @@
 import sys
+import os
 import optparse
 import requests
 import json
@@ -165,9 +166,9 @@ class ptArtifact:
         self.size = 0
         self.filename = ''
         self.description = ''
-        self.ttl_bytes = 180
+        self.ttl_days = 180
         self.uploaded_dt = datetime.datetime.now()
-        self.expires_dt = datetime.datetime.now() + datetime.timedelta(days=self.ttl_bytes)
+        self.expires_dt = datetime.datetime.now() + datetime.timedelta(days=self.ttl_days)
         self.inline = False
         self.compression = False
 
@@ -192,7 +193,7 @@ class ptArtifact:
         data = {'unlinked_uuids': json.dumps(uuids)}
         return self._pt_server.post(self._url, data=data)
 
-    def update(self, filename=''):
+    def update(self):
         assert self.uuid is not None
         data = {'description': self.description, 'ttl_days': self.ttl_days, 'mime': self.mime,
                 'filename': self.filename, 'inline': self.inline}
@@ -201,6 +202,9 @@ class ptArtifact:
 
     def upload(self, filepath):
         assert self.uuid is not None
+
+        if not self.filename:
+            self.filename = os.path.basename(filepath)
 
         f = open(filepath, 'rb')
         if self.compression:
@@ -540,6 +544,9 @@ class ptSuite:
         key = "%s-%s-%s" % (test.tag, str(test.group), str(test.category))
         self._key2test[key] = test
 
+    def addArtifact(self, uuid1=None):
+        return ptArtifact(pt_server=self.pt_server, uuid1=uuid1)
+
     def getTest(self, tag, group=None, category=None):
         key = "%s-%s-%s" % (tag, str(group), str(category))
         return self._key2test.get(key, None)
@@ -687,6 +694,12 @@ def _coverage():
         suite.addTest(ptTest("Home page throughput", group="Throughput tests", metrics="pages/sec",
                              category="%d parallel clients" % (2 ** p),
                              scores=[10 + sqrt(p) + random.randint(0, 20) / 5]))
+
+    a = suite.addArtifact(uuid1="11111111-3333-11e8-85cb-8c85907924aa")
+    a.compressed = True
+    a.inline = True
+    a.upload(os.path.abspath(__file__))
+    a.link([suite.uuid])
 
     suite.upload()
     print("Done, job: %s" % suite.uuid)
