@@ -51,9 +51,9 @@ Sometimes you don't want to write a python suite and just grab some files and ex
 you can use the pt-suite-uploader.py tool to parse test/json files (or even launch an external tool) and then
 upload results:
 ```
-python3 ./examples/pt-suite-uploader.py -f ./examples/data/sample.txt
-python3 ./examples/pt-suite-uploader.py -f -j ./examples/data/sample.json
-python3 ./examples/pt-suite-uploader.py -- /bin/echo "tag: my test; score: 2.3;"
+python3 ./tools/pt-suite-uploader.py -f ./examples/data/sample.txt
+python3 ./tools/pt-suite-uploader.py -f -j ./examples/data/sample.json
+python3 ./tools/pt-suite-uploader.py -- /bin/echo "tag: my test; score: 2.3;"
 ...
 ```
 
@@ -66,7 +66,7 @@ it can be test or job log, dump or some test data. Many to many links are allowe
 There are three ways how clients can managet the artifacts:
 1. perftracker REST API
 2. perftrackerlib/client.py - ptArfitact() class
-3. the examples/pt-artifact-ctl.py tool (see --help)
+3. the ./tools/pt-artifact-ctl.py tool (see --help)
 
 Short introuduction to pt-artifact-ctl.py:
 
