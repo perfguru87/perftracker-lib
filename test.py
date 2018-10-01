@@ -8,7 +8,7 @@ root = os.path.join(os.path.dirname(os.path.realpath(__file__)))
 sys.path.append(root)
 from execute import execute
 
-libs = [("perftrackerlib/client.py", 17),
+libs = [("perftrackerlib/client.py", 67),
         ("perftrackerlib/helpers/timeparser.py", 98),
         ("perftrackerlib/helpers/timeline.py", 89),
         ("perftrackerlib/helpers/largelogfile.py", 98),
