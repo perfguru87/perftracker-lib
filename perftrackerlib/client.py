@@ -207,7 +207,7 @@ class ptArtifact:
         assert type(uuids) is list
         uuids = [str(u) for u in uuids]
         self.linked_uuids |= set(uuids)
-        self.ulinked_uuids -= set(uuids)
+        self.unlinked_uuids -= set(uuids)
         data = {'unlinked_uuids': json.dumps(list(self.unlinked_uuids))}
         return self._pt_server.post(self._url, data=data)
 
