@@ -42,7 +42,7 @@ Use code like `examples/pt_suite_example_populate.sh` to mass populate perftrack
 
 Run selenium-based test on a real WordPress Admin panel:
 ```
-python3 ./examples/pt-wp-crawler.py -m -U admin -P pass https://demos1.softaculous.com/WordPress/wp-login.php
+python3 ./examples/pt-wp-crawler.py -m -U admin -P pass https://demo.wpjobboard.net/wp-login.php
 ```
 
 ### Upload pre-generated files with tests results:
