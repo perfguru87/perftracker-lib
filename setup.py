@@ -93,5 +93,5 @@ setup(
     package_data={
         '': ['helpers/timeline/*.js', 'helpers/timeline/*.css'],
     },
-    scripts=['tools/pt-suite-uploader.py']
+    scripts=['tools/pt-suite-uploader.py', 'tools/pt-artifact-ctl.py']
 )
