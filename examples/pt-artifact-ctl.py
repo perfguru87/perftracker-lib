@@ -106,7 +106,7 @@ def run(opts, args, abort):
                              "Yes" if a.compression else "No",
                              "%.1f" % (a.size / 1024.0),
                              a.mime,
-                             a.filename + " (%s)" % a.description if a.description else ""))
+                             a.filename + (" (%s)" % a.description if a.description else "")))
             return
     else:
         abort()
