@@ -88,6 +88,12 @@ def run(opts, args, abort):
         if resp.status_code == httplib.OK:
             print("Artifact UUID %s saved to %s (%d bytes)" % (uuid, filepath, len(resp.content)))
             return
+    elif args[0] == "dump" and len(args) == 2:
+        uuid = args[1]
+        resp = ptArtifact(pt_server, uuid1=uuid).download()
+        if resp.status_code == httplib.OK:
+            print(resp.text)
+            return
     elif args[0] == "list":
         try:
             limit = int(args[1]) if len(args) >= 2 else 10

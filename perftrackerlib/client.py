@@ -254,12 +254,13 @@ class ptArtifact:
 
         return resp, ret
 
-    def download(self, filepath):
+    def download(self, filepath=None):
         resp = self._pt_server.get(self._url_download, decode_json=False)
         if resp.status_code == httplib.OK:
-            f = open(filepath, 'wb')
-            f.write(resp.content)
-            f.close()
+            if filepath is not None:
+                f = open(filepath, 'wb')
+                f.write(resp.content)
+                f.close()
         return resp
 
 

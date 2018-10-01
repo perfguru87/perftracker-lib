@@ -36,6 +36,7 @@ tests = [("./examples/pt-artifact-ctl.py list"),
          ("./examples/pt-artifact-ctl.py upload ./test.py 11111111-4444-11e8-85cb-8c85907924ab -iz"),
          ("./examples/pt-artifact-ctl.py info 11111111-4444-11e8-85cb-8c85907924ab"),
          ("./examples/pt-artifact-ctl.py update 11111111-4444-11e8-85cb-8c85907924ab --description=desc -t 0"),
+         ("./examples/pt-artifact-ctl.py dump 11111111-4444-11e8-85cb-8c85907924ab"),
          ("./examples/pt-artifact-ctl.py link "
           "11111111-4444-11e8-85cb-8c85907924ab 11111111-3333-11e8-85cb-8c85907924ab"),
          ("./examples/pt-artifact-ctl.py unlink "
