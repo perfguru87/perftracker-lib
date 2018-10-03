@@ -2969,6 +2969,17 @@ links.Timeline.prototype.onMouseMove = function (event) {
     }
 
     links.Timeline.preventDefault(event);
+
+    // redraw all the items if at least one of them is partially hiddent
+    // this is needed for smooth item content (e.g span) redraw
+    var timeline = this, need_repaint = false;
+    this.renderedItems.forEach(function (item) {
+        if (!need_repaint || item.isPartiallyHidden(timeline)) {
+            need_repaint = true;
+        }
+    });
+    if (need_repaint)
+        this.repaintItems();
 };
 
 
@@ -3684,6 +3695,23 @@ links.Timeline.Item.prototype.updatePosition = function (timeline) {
 };
 
 /**
+ * Return 'true' if an item is partially hidden (doesn't fit the view port)
+ */
+links.Timeline.Item.prototype.isPartiallyHidden = function(timeline) {
+    var dom = this.dom;
+    if (dom) {
+        var contentWidth = timeline.size.contentWidth,
+            left = timeline.timeToScreen(this.start),
+            right = timeline.timeToScreen(this.end);
+        if (right < 0 || left > contentWidth)
+            return false;
+        if (left < 0 || right > contentWidth)
+            return true;
+    }
+    return false;
+}
+
+/**
  * Check if the item is drawn in the timeline (i.e. the DOM of the item is
  * attached to the frame. You may also just request the parameter item.rendered
  * @return {boolean} rendered
@@ -4193,8 +4221,9 @@ links.Timeline.ItemRange.prototype.updatePosition = function (timeline) {
         if (left < -2) {
             left = -2;
         }
-        if (right > 2 * contentWidth) {
-            right = 2 * contentWidth;
+
+        if (right > contentWidth + 2) {
+            right = contentWidth + 2;
         }
 
         dom.style.top = this.top + "px";
