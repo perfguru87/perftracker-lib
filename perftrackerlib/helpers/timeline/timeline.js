@@ -4190,8 +4190,8 @@ links.Timeline.ItemRange.prototype.updatePosition = function (timeline) {
             right = timeline.timeToScreen(this.end);
 
         // limit the width of the this, as browsers cannot draw very wide divs
-        if (left < -contentWidth) {
-            left = -contentWidth;
+        if (left < -2) {
+            left = -2;
         }
         if (right > 2 * contentWidth) {
             right = 2 * contentWidth;
