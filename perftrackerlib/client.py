@@ -149,7 +149,7 @@ class ptServer:
                     logging.debug("%s %s ... response size %d" % (method, url, len(response.content)))
         else:
             logging.error("%s %s status: %s, message: %s" %
-                          (method, url, response.status_code, j.get('message', ptJsonEncoder.pretty(j))))
+                          (method, url, response.status_code, text))
 
         return response
 
@@ -627,9 +627,9 @@ class ptSuite:
         response = self.pt_server.post('%d/job/' % self.project_id, decode_json=False, data=json_data)
 
         if response.status_code != httplib.OK:
-            logging.error("job json upload to %s: status %d, %s" % (url, response.status_code, response.text))
-            raise ptRuntimeException("Suite run results upload failed, url: %s status %d:\n%s" %
-                                     (url, response.status_code, response.text))
+            logging.error("job json upload failed, status %d, %s" % (response.status_code, response.text))
+            raise ptRuntimeException("Suite run results upload failed, status %d:\n%s" %
+                                     (response.status_code, response.text))
         logging.info("status %d - job json uploaded, %s" % (response.status_code, response.text))
         return True
 
