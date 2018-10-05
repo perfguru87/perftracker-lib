@@ -189,7 +189,8 @@ TIMELINE_ID = 0
 
 
 class ptTimeline:
-    def __init__(self, title=None, width="100%", height="auto", begin=None, end=None, js_opts=None, groups_title=None):
+    def __init__(self, title=None, width="100%", height="auto", begin=None, end=None, js_opts=None, groups_title=None,
+                 cluster=True):
 
         global TIMELINE_ID
         self.tasks = []
@@ -199,6 +200,8 @@ class ptTimeline:
 
         self.begin = begin
         self.end = end
+
+        self.cluster = cluster  # group events into clusters on zoom-out
 
         if js_opts:
             self.js_opts = js_opts
@@ -244,7 +247,7 @@ class ptTimeline:
             s += "]);\n"
 
         s += "options = {width: '%s', height: '%s', " % (self.width, self.height)
-        s += "layout: 'box', cluster: true, snapEvents: true, eventMargin: 0, eventMarginAxis: 4,"
+        s += "layout: 'box', cluster: %s, snapEvents: true, eventMargin: 0, eventMarginAxis: 4," % (str(self.cluster).lower())
 
         if self.begin and self.end:
             s += "start: '%s', end: '%s', " % (self.begin, self.end)
