@@ -385,9 +385,12 @@ class ptDoc:
                 self.header += "<title>%s</title>" % str(title)
             self.header += "</head>"
             self.header += "<body>"
-        self.header += self._embed(["jsapi.js", "udate.js", "timeline.js", "formatendefault.js"])
-        self.header += self._embed(["timeline.css", "table.css"])
-        self.header += "<style type='text/css'>body {font: 9pt arial;}</style>"
+        self.body = self._embed(["jsapi.js", "udate.js", "timeline.js", "formatendefault.js"])
+        self.body += self._embed(["timeline.css", "table.css"])
+        self.body += "<style type='text/css'>body {font: 9pt arial;}</style>"
+
+    def add_body(self, body):
+        self.body += body
 
     def add_section(self, section):
         assert isinstance(section, ptSection)
@@ -414,7 +417,7 @@ class ptDoc:
         return ret
 
     def gen_html(self):
-        ret = self.header
+        ret = self.header + self.body
         for s in self.sections:
             ret += s.gen_html()
         ret += self.footer
