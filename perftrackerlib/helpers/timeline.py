@@ -103,7 +103,7 @@ class ptParserUsec(ptParser):
 
 
 class ptTask:
-    def __init__(self, begin, end, title="", comment="", cssClass="", group=None, hint=None, phases=None):
+    def __init__(self, begin, end, title="", comment="", data_id="", cssClass="", group=None, hint=None, phases=None):
         """
         Supported ptTask begin/end format:
         1) YYYY-MM-DD HH:SS:MM
@@ -119,10 +119,11 @@ class ptTask:
         self._parsers = [ptParserDate(), ptParserDateMsec(), ptParserDateUsec(), ptParserUsec()]
         self._parser = self._parsers[0]
 
+        data_id = (" data-id=\"%s\"" % data_id) if data_id else ""
+
         if phases:
             if hint:
-                s = '<div class="timeline-event-phases" title="%s">' % pt_html_escape(hint)
-
+                s = '<div class="timeline-event-phases" title="%s"%s>' % (pt_html_escape(hint), data_id)
             else:
                 s = '<div class="timeline-event-phases">'
                 for p in range(0, len(phases)):
@@ -137,7 +138,7 @@ class ptTask:
             if comment:
                 title += "<br><small>%s</small>" % comment
             if hint:
-                title = '<span title="%s">%s</span>' % (pt_html_escape(hint), title)
+                title = '<span title="%s"%s>%s</span>' % (pt_html_escape(hint), data_id, title)
             self.props['content'] = title
 
         if cssClass:
