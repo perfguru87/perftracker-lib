@@ -248,7 +248,8 @@ class ptTimeline:
             s += "]);\n"
 
         s += "options = {width: '%s', height: '%s', " % (self.width, self.height)
-        s += "layout: 'box', cluster: %s, snapEvents: true, eventMargin: 0, eventMarginAxis: 4," % (str(self.cluster).lower())
+        s += "layout: 'box', cluster: %s, snapEvents: true, eventMargin: 0, eventMarginAxis: 4," % \
+             (str(self.cluster).lower())
 
         if self.begin and self.end:
             s += "start: '%s', end: '%s', " % (self.begin, self.end)
