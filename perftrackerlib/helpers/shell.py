@@ -202,7 +202,7 @@ class Shell:
         if ret.exit_code():
             msg = "ERROR: %s: %s, exit status: %d\n%s" % (str(self), cmdline, ret.exit_code(), ret.stderr())
             if raise_exc:
-                raise RuntimeException(msg)
+                raise ShellError(msg)
             self._debug(msg)
 
         return ret.exit_code(), "\n".join(ret.stdout()), "\n".join(ret.stderr())
