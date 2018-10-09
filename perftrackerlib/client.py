@@ -18,12 +18,16 @@ import pipes
 import subprocess
 import bz2
 import random
+import citizenshell
 from math import sqrt
 from dateutil import parser
 
 from optparse import OptionParser, OptionGroup
 
 from perftrackerlib.helpers.tee import Tee
+from perftrackerlib.helpers.decorators import cached_property
+from perftrackerlib.helpers.shell import Shell
+
 from dateutil.tz import tzlocal
 from collections import OrderedDict
 
@@ -431,8 +435,10 @@ class ptTest:
 
 
 class ptEnvNode:
-    def __init__(self, name, version=None, node_type=None, ip=None, hostname=None, params=None, cpus=0,
-                 ram_mb=0, ram_gb=0, disk_gb=0, links=None):
+    def __init__(self, name, version=None, node_type=None, ip=None, hostname=None, params=None,
+                 cpus=0, cpu_info=None, ram_info=None,
+                 ram_mb=0, ram_gb=0, disk_gb=0, links=None, scan_info=False,
+                 ssh_user=None, ssh_password=None):
         self.name = name
         self.version = version
         self.node_type = node_type
@@ -442,6 +448,9 @@ class ptEnvNode:
 
         self.params = params
         self.cpus = cpus
+        self.cpu_info = cpu_info
+        self.ram_info = ram_info
+
         self.ram_mb = ram_mb if ram_mb else ram_gb * 1024
         self.disk_gb = disk_gb
 
@@ -449,6 +458,27 @@ class ptEnvNode:
         self.validate()
 
         self.children = []  # start with x to show children in the end of prettified json
+
+        self._scan_info = scan_info
+        if self._scan_info and self._shell:
+            if not self.hostname:
+                self.hostname = self._shell.os_info.hostname
+            if not self.ram_mb:
+                self.ram_mb = int(round(self._shell.hw_info.ram_kb / 1024, 0))
+            if not self.cpus:
+                self.cpus = self._shell.hw_info.cpu_count
+            if not self.cpu_info:
+                self.cpu_info = "%s @ %.1fGHz" % (self._shell.hw_info.cpu_model, self._shell.hw_info.cpu_freq_ghz)
+            if not self.version:
+                self.version = "%s %s" % (self._shell.os_info.family, self._shell.os_info.version)
+
+    @cached_property
+    def _shell(self):
+        if self.ip in (None, "127.0.0.1", "localhost"):
+            return Shell(citizenshell.LocalShell())
+        if self.ssh_user:
+            return Shell(citizenshell.SecureShell(hostname=self.ip, username=self.ssh_user, password=self.ssh_password))
+        return None
 
     def validate(self):
         assert self.cpus is None or type(self.cpus) is int
@@ -463,15 +493,20 @@ class ptEnvNode:
 
 
 class ptHost(ptEnvNode):
-    def __init__(self, name, model=None, hw_uuid=None, serial_num=None, numa_nodes=None,
-                 ram_info=None, cpu_info=None, **kwargs):
+    def __init__(self, name, model=None, hw_uuid=None, serial_num=None, numa_nodes=None, **kwargs):
         ptEnvNode.__init__(self, name, **kwargs)
         self.node_type = "Host"
         self.model = model
         self.hw_uuid = hw_uuid
         self.serial_num = serial_num
-        self.ram_info = ram_info
-        self.cpu_info = cpu_info
+
+        if self._scan_info and self._shell:
+            if not self.model:
+                self.model = self._shell.hw_info.model
+            if not self.hw_uuid:
+                self.hw_uuid = self._shell.hw_info.uuid
+            if not self.serial_num:
+                self.serial_num = self._shell.hw_info.serial
 
 
 class ptVM(ptEnvNode):
