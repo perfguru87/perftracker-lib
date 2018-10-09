@@ -28,7 +28,7 @@ def main(suite):
     vm3 = s2.addNode(ptVM("vm3", ip="192.168.100.3", version="CentOS 7.4", virt_type="KVM VM", cpus=8, ram_gb=64))
     vm4 = s3.addNode(ptVM("vm4", ip="192.168.100.4", version="CentOS 7.4", virt_type="KVM VM", cpus=8, ram_gb=64))
 
-    s4.addNode(ptVM("client", ip="192.168.200.1", version="CentoOS 7.4", cpus=12, ram_gb=32, params="Python3", virt_type="KVM VM"))
+    suite.addNode(ptHost("client", params="Python3", scan_info=True))
 
     vm1.addNode(ptComponent("database", version="1.0.12"))
     vm2.addNode(ptComponent("backend", version="1.0.12"))
