@@ -53,6 +53,7 @@ from .page import PageStats, PageStatsSummary
 from .utils import gen_urls_from_index_file
 from .cp_engine import CPEngineBase
 from ..helpers.texttable import TextTable
+from ..helpers.shell import Shell
 from selenium.webdriver.remote.remote_connection import LOGGER as selenium_logger
 
 bindir, basename = os.path.split(sys.argv[0])
@@ -195,7 +196,10 @@ class CPBrowserRunner:
         self.pt_suite.product_name = product_name
 
         if not self.opts.pt_title and product_name and product_ver:
-            self.pt_suite.job_title = "%s %s" % (product_name, product_ver)
+            browser_name = self.browser.browser_get_name()
+            browser_name += self.browser.browser_get_version().split(".")[0]
+            ghz = Shell().hw_info.cpu_freq_ghz
+            self.pt_suite.job_title = "%s %s @ %s %1.fGHz" % (product_name, product_ver, browser_name, ghz)
 
         ram = virtual_memory()
 
