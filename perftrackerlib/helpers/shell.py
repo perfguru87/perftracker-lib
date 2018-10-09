@@ -78,7 +78,7 @@ class Hw:
         self._vendor = ''
         self._model = ''
         self._cpu_model = ''
-        self._cpu_freq_ghz = ''
+        self._cpu_freq_ghz = 0
         self._cpu_count = 0
         self._ram_kb = 0
 
