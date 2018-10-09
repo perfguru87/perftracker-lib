@@ -172,7 +172,9 @@ class Hw:
 
 
 class Shell:
-    def __init__(self, shell):
+    def __init__(self, shell=None):
+        if shell is None:
+            shell = citizenshell.LocalShell()
         assert isinstance(shell, citizenshell.LocalShell) or isinstance(shell, citizenshell.SecureShell)
         self.shell = shell
         self._hw_info = None
