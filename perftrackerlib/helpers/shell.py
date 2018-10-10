@@ -97,7 +97,7 @@ class Hw:
             self._model = f("cat /sys/class/dmi/id/product_name")
             self._cpu_model = f("cat /proc/cpuinfo | grep 'model name' | head -n 1 | cut -d':' -f 2")
             self._cpu_freq_ghz = round(f("cat /proc/cpuinfo | grep 'cpu MHz' "
-                                          "| head -n 1 | cut -d':' -f 2", float) / 1000, 1)
+                                         "| head -n 1 | cut -d':' -f 2", float) / 1000, 1)
             self._cpu_count = f("cat /proc/cpuinfo | grep processor | wc -l", int)
             self._ram_kb = f("cat /proc/meminfo | grep MemTotal | awk '{ print $2 }'")
 
