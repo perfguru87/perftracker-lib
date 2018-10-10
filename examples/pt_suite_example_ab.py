@@ -81,19 +81,19 @@ class ABLauncher:
             for url in self.urls:
                 cmdline = "ab -k -c %d -n %d %s" % (concurrency, requests, url)
 
-            test = ptTest(url, category="concurrency=%d" % concurrency,
-                          group="Throughput", metrics="req/sec",
-                          errors=0, loops=0, cmdline=cmdline)
+                test = ptTest(url, category="concurrency=%d" % concurrency,
+                              group="Throughput", metrics="req/sec",
+                              errors=0, loops=0, cmdline=cmdline)
 
-            for i in range(0, self.iterations):
-                status, stdout, stderr = test.execute()
-                if status:
-                    print(stderr, file=sys.stderr)
-                    sys.exit(EXIT_AB_ERROR)
-                self.parse_ab_stdout(concurrency, test.cmdline, stdout, test)
+                for i in range(0, self.iterations):
+                    status, stdout, stderr = test.execute()
+                    if status:
+                        print(stderr, file=sys.stderr)
+                        sys.exit(EXIT_AB_ERROR)
+                    self.parse_ab_stdout(concurrency, test.cmdline, stdout, test)
 
-            self.suite.addTest(test)
-            self.suite.upload()
+                self.suite.addTest(test)
+                self.suite.upload()
 
 
     def validate_urls(self):
