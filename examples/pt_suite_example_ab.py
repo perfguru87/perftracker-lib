@@ -70,12 +70,23 @@ class ABLauncher:
                 continue
         print(self.fmt % (str(concurrency), "%.1f" % score, str(loops), str(errors), cmdline))
 
-    def launch(self):
-        self.suite.addNode(ptHost("client", ip='127.0.0.1', scan_info=True))
+    def _validate_urls(self):
+        for url in self.urls:
+            for pfx in ("http://", "https://"):
+                if url.startswith(pfx) and "/" in url[len(pfx):]:
+                    break
+            else:
+                print("error: an url must be: http(s)://$DOMAIN/.* ... got: %s" % url)
+                sys.exit(EXIT_URL_VALIDATION)
 
+    def init(self):
+        self._validate_urls()
+
+        self.suite.addNode(ptHost("client", ip='127.0.0.1', scan_info=True))
         self.suite.upload()
 	self.print_ab_header()
 
+    def launch(self):
         for concurrency in self.concurrencies:
             requests = max(self.requests, concurrency)
             for url in self.urls:
@@ -96,18 +107,7 @@ class ABLauncher:
                 self.suite.upload()
 
 
-    def validate_urls(self):
-        for url in self.urls:
-            for pfx in ("http://", "https://"):
-                if url.startswith(pfx) and "/" in url[len(pfx):]:
-                    break
-            else:
-                print("error: an url must be: http(s)://$DOMAIN/.* ... got: %s" % url)
-                sys.exit(EXIT_URL_VALIDATION)
-
-
-if __name__ == "__main__":
-
+def main():
     op = OptionParser("PerfTracker suite example", description="%program [options] URL1 [URL2 [...]]")
     op.add_option("-v", "--verbose", action="store_true", help="enable verbose mode")
     op.add_option("-c", "--concurrency", default="1,4,16", help="comma separated list of concurrencies to use")
@@ -131,5 +131,8 @@ if __name__ == "__main__":
 
     ab = ABLauncher(suite, urls, concurrencies=[int(c.strip()) for c in opts.concurrency.split(",")],
                     requests=opts.requests, iterations=opts.iterations)
-    ab.validate_urls()
+    ab.init()
     ab.launch()
+
+if __name__ == "__main__":
+    main()
