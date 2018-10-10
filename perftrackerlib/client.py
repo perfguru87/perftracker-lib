@@ -619,6 +619,9 @@ class ptSuite:
                 logging.warning("%s, pass it as ptSuite(..., project_name=, ...)" % msg)
             return
 
+        if not self.project_id:
+            self.validateProjectName()
+
         if self._auto_end is None:
             self.end = datetime.datetime.now()
 
