@@ -364,23 +364,27 @@ class ptTest:
                (self.tag, self.group, self.category, str(self.scores),
                 self.duration_sec, str(self.less_better), self.status)
 
-    def _execute_local(self, path=None, exc_on_err=False, log_file=None):
+    def execute(self, cmdline=None, shell=None, exc_on_err=False, log_file=None):
+        """
+        Simple test executor:
+        shell - Shell instance where to execute the test, keep None for local launch: '192.168.0.100'
+        path - path to search tests (list): ['/tmp/tests', '/opt/tests/bin/']
+        """
 
-        cmd = self.binary
-        if sys.platform == 'win32':
-            cmd += ".exe"
+        if shell is None:
+            shell = Shell()
+        if not isinstance(shell, Shell):
+            raise ptRuntimeException("shell argument must be an instance of the Shell class, got: " + str(type(shell)))
 
-        if path:
-            cmd = os.path.join(path, cmd)
+        if cmdline is None:
+            cmdline = self.cmdline
+        if cmdline is None:
+            raise ptRuntimeException("execute() must be supplied with the 'cmdline' argument, got None")
 
-        if self.cmdline:
-            cmd += " %s" % self.cmdline
+        if self._auto_begin is None:
+            self.begin = datetime.datetime.now()
 
-        logging.debug("executing: %s" % (cmd))
-        p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        stdout_text, stderr_text = p.communicate()
-        p.wait()
-
+        status, out, err = shell.execute(cmdline, raise_exc=exc_on_err)
         if log_file:
             logging.debug("Storing the output to: %s" % log_file)
             lf = open(log_file, "a")
@@ -391,32 +395,6 @@ class ptTest:
                 lf.write("=============== stderr =================\n\n")
                 lf.write(stderr_text)
             lf.close()
-
-        status = p.returncode
-        if status and exc_on_err:
-            raise RuntimeError("'%s' execution failed with status %d:\n%s\n%s" %
-                               (cmd, status, stdout_text, stderr_text))
-        logging.debug("'%s' status %d, stdout:\n%s\nstderr:\n%s" % (cmd, status, stdout_text, stderr_text))
-
-        return (status, stdout_text, stderr_text)
-
-    def execute(self, host=None, path=None, exc_on_err=False, log_file=None):
-        """
-        Simple test executor:
-        host - host IP/hostname where to execute the test, keep None for local launch: '192.168.0.100'
-        path - path to search tests (list): ['/tmp/tests', '/opt/tests/bin/']
-        """
-
-        if self.binary is None:
-            raise ptRuntimeException("Test binary is not specified")
-
-        if self._auto_begin is None:
-            self.begin = datetime.datetime.now()
-
-        if host is None:
-            status, out, err = self._execute_local(path, exc_on_err, log_file=log_file)
-        else:
-            raise ptRuntimeException("Sorry, remote host is not implemented")
 
         if self._auto_end is None:
             self.end = datetime.datetime.now()
