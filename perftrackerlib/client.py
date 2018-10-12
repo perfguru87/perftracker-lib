@@ -138,7 +138,8 @@ class ptServer:
             raise ptRuntimeException(str(e))
 
         if decode_json or response.status_code != httplib.OK:
-            text = response.text.encode(response.encoding if response.encoding else 'utf-8')
+            text = response.text.encode(response.encoding if response.encoding else 'utf-8', 'strict')
+            text = text.decode('utf-8', 'strict')
             try:
                 j = json.loads(text)
                 response.json = j
