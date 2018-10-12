@@ -11,7 +11,6 @@ from optparse import OptionParser, OptionGroup, IndentedHelpFormatter
 import os
 import sys
 import logging
-from dateutil.tz import tzlocal
 
 if sys.version_info >= (3, 0):
     import http.client as httplib
@@ -139,17 +138,22 @@ def main():
     op.add_option("-p", "--pt-server-url", default="http://127.0.0.1:9000", help="perftracker url, default %default")
 
     og = OptionGroup(op, "'upload' and 'update' options")
-    op.add_option("-d", "--description", help="artifact description (i")
-    op.add_option("-m", "--mime", default=None, help="artifact mime type, default is guessed or 'application/octet-stream'")
-    op.add_option("-f", "--filename", help="override artifact file name by given name")
-    op.add_option("-z", "--compression", action="store_true", help="inline decompression on every file view or download")
-    op.add_option("-i", "--inline", default=False, action="store_true", help="inline view in browser (do not download on click)")
-    op.add_option("-t", "--ttl", default=180, help="time to live (days), default=%default, 0 - infinite")
+    og.add_option("-d", "--description", help="artifact description (i")
+    og.add_option("-m", "--mime", default=None, help="artifact mime type, default is guessed or "
+                                                     "'application/octet-stream'")
+    og.add_option("-f", "--filename", help="override artifact file name by given name")
+    og.add_option("-z", "--compression", action="store_true", help="inline decompression on every file view or "
+                                                                   "download")
+    og.add_option("-i", "--inline", default=False, action="store_true", help="inline view in browser "
+                                                                             "(do not download on click)")
+    og.add_option("-t", "--ttl", default=180, help="time to live (days), default=%default, 0 - infinite")
+    op.add_option_group(og)
 
     opts, args = op.parse_args()
 
     loglevel = logging.DEBUG if opts.verbose >= 2 else (logging.INFO if opts.verbose == 1 else logging.WARNING)
-    logging.basicConfig(level=loglevel, format="%(asctime)s - %(module)17s - %(levelname).3s - %(message)s", datefmt='%H:%M:%S')
+    logging.basicConfig(level=loglevel, format="%(asctime)s - %(module)17s - %(levelname).3s - %(message)s",
+                        datefmt='%H:%M:%S')
 
     def abort(msg=None):
         op.print_usage()
