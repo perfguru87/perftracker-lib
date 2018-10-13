@@ -33,7 +33,7 @@ python3 ./examples/pt_suite_example_minimal.py --pt-title="Website suite run" --
 
 Simulate a 'website' suite run and upload results:
 ```
-python3 ./examples/pt_suite_example.py -v --pt-title="Website suite run" --pt-project="Default project" --pt-url http://perftracker.localdomain:9000
+python3 ./examples/pt_suite_example_fake.py -v --pt-title="Website suite run" --pt-project="Default project" --pt-url http://perftracker.localdomain:9000
 ```
 
 Use code like `examples/pt_suite_example_populate.sh` to mass populate perftracker with fake data
