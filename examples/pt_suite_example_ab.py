@@ -37,7 +37,7 @@ class ABLauncher:
         assert isinstance(suite, ptSuite)
 
         self.suite = suite
-        self.urls = urls
+        self.urls = [u.strip() for u in urls if u]
         self.concurrencies = concurrencies
         self.iterations = int(iterations)
         self.requests = int(requests)
@@ -113,11 +113,17 @@ def main():
     op.add_option("-c", "--concurrency", default="1,4,16", help="comma separated list of concurrencies to use")
     op.add_option("-n", "--requests", default=100, type=int, help="total number of requests to execute on every step")
     op.add_option("-i", "--iterations", default=3, type=int, help="number of iterations for every test")
+    op.add_option("-f", "--from-file", default="", help="get URLs from given file")
 
     suite = ptSuite(suite_ver="1.0.0", product_name="My web site", product_ver="1.0-1234")
     suite.addOptions(op)
 
     opts, urls = op.parse_args()
+
+    if opts.from_file:
+        f = open(opts.from_file, 'r')
+        urls = f.readlines()
+        f.close()
 
     if not urls:
         op.print_help()
