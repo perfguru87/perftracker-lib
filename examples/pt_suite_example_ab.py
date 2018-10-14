@@ -28,19 +28,22 @@ EXIT_URL_VALIDATION = -2
 EXIT_NO_URLS = -3
 
 class ABLauncher:
-    def __init__(self, suite, urls, concurrencies=None, iterations=3, requests=100):
+    def __init__(self, suite, urls, concurrencies=None, iterations=3, requests=0, time=5):
         if concurrencies is None:
             concurrencies = []
         assert type(concurrencies) == list
         assert type(urls) == list
         assert len(urls)
         assert isinstance(suite, ptSuite)
+        assert type(requests) == int
+        assert type(time) == int
 
         self.suite = suite
         self.urls = [u.strip() for u in urls if u]
         self.concurrencies = concurrencies
         self.iterations = int(iterations)
         self.requests = int(requests)
+        self.time = int(time)
 
         self.fmt = "%11s %8s %8s %8s  %s"
 
@@ -88,9 +91,12 @@ class ABLauncher:
 
     def launch(self):
         for concurrency in self.concurrencies:
-            requests = max(self.requests, concurrency)
             for url in self.urls:
-                cmdline = "ab -k -c %d -n %d %s" % (concurrency, requests, url)
+                if self.requests:
+                    requests = max(self.requests, concurrency)
+                    cmdline = "ab -k -c %d -n %d %s" % (concurrency, requests, url)
+                else:
+                    cmdline = "ab -k -c %d -t %d -n 500000 %s" % (concurrency, self.time, url)
 
                 test = ptTest(url, category="concurrency=%d" % concurrency,
                               group="Throughput", metrics="req/sec",
@@ -111,9 +117,12 @@ def main():
     op = OptionParser("PerfTracker suite example", description="%program [options] URL1 [URL2 [...]]")
     op.add_option("-v", "--verbose", action="store_true", help="enable verbose mode")
     op.add_option("-c", "--concurrency", default="1,4,16", help="comma separated list of concurrencies to use")
-    op.add_option("-n", "--requests", default=100, type=int, help="total number of requests to execute on every step")
+    op.add_option("-n", "--requests", default=0, type=int,
+                  help="limit every test by given number of requests (time limit is default, see -t)")
     op.add_option("-i", "--iterations", default=3, type=int, help="number of iterations for every test")
     op.add_option("-f", "--from-file", default="", help="get URLs from given file")
+    op.add_option("-t", "--time", default=5, type=int,
+                  help="limit every test by given time (sec), default %default")
 
     suite = ptSuite(suite_ver="1.0.0", product_name="My web site", product_ver="1.0-1234")
     suite.addOptions(op)
@@ -136,7 +145,7 @@ def main():
     suite.handleOptions(opts)
 
     ab = ABLauncher(suite, urls, concurrencies=[int(c.strip()) for c in opts.concurrency.split(",")],
-                    requests=opts.requests, iterations=opts.iterations)
+                    requests=opts.requests, iterations=opts.iterations, time=opts.time)
     ab.init()
     ab.launch()
 
