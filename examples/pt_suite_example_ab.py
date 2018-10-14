@@ -116,7 +116,7 @@ class ABLauncher:
 def main():
     op = OptionParser("PerfTracker suite example", description="%program [options] URL1 [URL2 [...]]")
     op.add_option("-v", "--verbose", action="store_true", help="enable verbose mode")
-    op.add_option("-c", "--concurrency", default="1,4,16",
+    op.add_option("-c", "--concurrency", default="1,2,4",
                   help="comma separated list of concurrencies to use, default: %default")
     op.add_option("-n", "--requests", default=0, type=int,
                   help="limit every test by given number of requests (time limit is default, see -t)")
