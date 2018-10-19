@@ -26,7 +26,7 @@ from optparse import OptionParser, OptionGroup
 
 from perftrackerlib.helpers.tee import Tee
 from perftrackerlib.helpers.decorators import cached_property
-from perftrackerlib.helpers.shell import Shell
+from perftrackerlib.helpers.ptshell import ptShell, ptShellFromFile
 
 from dateutil.tz import tzlocal
 from collections import OrderedDict
@@ -373,8 +373,8 @@ class ptTest:
         """
 
         if shell is None:
-            shell = Shell()
-        if not isinstance(shell, Shell):
+            shell = ptShell()
+        if not (isinstance(shell, ptShell) or isinstance(shell, ptShellFromFile)):
             raise ptRuntimeException("shell argument must be an instance of the Shell class, got: " + str(type(shell)))
 
         if cmdline is None:
@@ -389,12 +389,12 @@ class ptTest:
         if log_file:
             logging.debug("Storing the output to: %s" % log_file)
             lf = open(log_file, "a")
-            if stdout_text:
+            if out:
                 lf.write("=============== stdout =================\n\n")
-                lf.write(stdout_text)
-            if stderr_text:
+                lf.write(out)
+            if err:
                 lf.write("=============== stderr =================\n\n")
-                lf.write(stderr_text)
+                lf.write(err)
             lf.close()
 
         if self._auto_end is None:
@@ -422,6 +422,8 @@ class ptEnvNode:
         self.version = version
         self.node_type = node_type
         self.ip = ip
+        self.ssh_user = ssh_user
+        self.ssh_password = ssh_password
         self.hostname = hostname
         self.uuid = uuid.uuid1()
 
@@ -454,9 +456,10 @@ class ptEnvNode:
     @cached_property
     def _shell(self):
         if self.ip in (None, "127.0.0.1", "localhost"):
-            return Shell(citizenshell.LocalShell())
+            return ptShell(citizenshell.LocalShell())
         if self.ssh_user:
-            return Shell(citizenshell.SecureShell(hostname=self.ip, username=self.ssh_user, password=self.ssh_password))
+            return ptShell(
+                citizenshell.SecureShell(hostname=self.ip, username=self.ssh_user, password=self.ssh_password))
         return None
 
     def validate(self):

@@ -5,7 +5,6 @@ __author__ = "perfguru87@gmail.com"
 __copyright__ = "Copyright 2018, The PerfTracker project"
 __license__ = "MIT"
 
-
 import citizenshell
 import logging
 from perftrackerlib.helpers.decorators import cached_property
@@ -18,7 +17,7 @@ class ShellError(Exception):
 
 class Os:
     def __init__(self, shell):
-        assert isinstance(shell, Shell)
+        assert isinstance(shell, ptShell)
         self._shell = shell
         self._family = None
         self._version = None
@@ -69,7 +68,7 @@ class Os:
 
 class Hw:
     def __init__(self, shell, os_info=None):
-        assert isinstance(shell, Shell)
+        assert isinstance(shell, ptShell)
         self._shell = shell
         self._os_info = os_info
 
@@ -118,7 +117,7 @@ class Hw:
                 elif "Total Number of Cores" in line:
                     self._cpu_count *= int(line.split(":")[1].strip())
                 elif "Processor Speed" in line:
-                    self._cpu_freq_ghz = float(line.split(":")[1].split()[0].strip())
+                    self._cpu_freq_ghz = float(line.split(":")[1].split()[0].strip().replace(',', '.'))
                 elif "Memory" in line:
                     self._ram_kb = int(line.split()[1].strip()) * 1024 * 1024
                 elif "Serial Number" in line:
@@ -171,11 +170,11 @@ class Hw:
         return Os(self._shell) if self._os_info is None else self._os_info
 
 
-class Shell:
+class ptShell:
     def __init__(self, shell=None):
         if shell is None:
             shell = citizenshell.LocalShell()
-        assert isinstance(shell, citizenshell.LocalShell) or isinstance(shell, citizenshell.SecureShell)
+        assert isinstance(shell, citizenshell.abstractshell.AbstractShell)
         self.shell = shell
         self._hw_info = None
         self._os_info = None
@@ -192,7 +191,7 @@ class Shell:
         if isinstance(self.shell, citizenshell.LocalShell):
             return "localhost"
         if isinstance(self.shell, citizenshell.SecureShell):
-            return self.shell.os_info.hostname
+            return "" # self.os_info.hostname
         return str(self.shell)
 
     def _debug(self, msg):
@@ -224,6 +223,27 @@ class Shell:
         return ret
 
 
+class ptShellFromFile(citizenshell.abstractshell.AbstractShell):
+    def __init__(self, from_file, **kwargs):
+        citizenshell.abstractshell.AbstractShell.__init__(self)
+        self.from_file = from_file
+
+    def execute(self, command, **kwargs):
+        class FakeResult:
+            def __init__(self, output):
+                self.output = output.split('\n')
+
+            def exit_code(self):
+                return 0
+
+            def __iter__(self):
+                for line in self.output:
+                    yield line
+
+        with open(self.from_file) as output:
+            return 0, output.read(), ""
+
+
 ##############################################################################
 # Autotests
 ##############################################################################
@@ -232,7 +252,7 @@ class Shell:
 def _coverage():
     logging.basicConfig(level=logging.DEBUG)
 
-    sh = Shell(citizenshell.LocalShell())
+    sh = ptShell(citizenshell.LocalShell())
 
     print("os family:    ", sh.os_info.family)
     print("os version:   ", sh.os_info.version)
