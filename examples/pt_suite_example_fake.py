@@ -90,6 +90,15 @@ def main(suite):
 
     suite.upload()
 
+    g = "Download throughput"
+
+    for p in range(1, 5 + random.randint(0, 2)):
+        suite.addTest(ptTest("Download throughput", group=g, metrics="Bytes/sec",
+                             category="%d parallel clients" % (2 ** p),
+                             scores=[10000000000 + random.randint(10 * p, 20 * p) * 5000000]))
+
+    suite.upload()
+
 
 if __name__ == "__main__":
 
