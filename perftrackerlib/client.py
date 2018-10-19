@@ -344,6 +344,12 @@ class ptTest:
 
         self.validate()
 
+    def __eq__(self, other):
+        assert isinstance(other, ptTest)
+        attributes = ["tag", "group", "category", "metrics", "less_better"]
+        return all(map(lambda attr: getattr(self, attr) == getattr(other, attr),
+                       attributes))
+
     def validate(self):
         assert self.tag is not None
         assert self.links is None or type(self.links) is dict
@@ -403,7 +409,11 @@ class ptTest:
         return status, out, err
 
     def add_score(self, score):
-        self.scores.append(pt_float(score))
+        if isinstance(score, list):
+            for s in score:
+                self.scores.append(pt_float(s))
+        else:
+            self.scores.append(pt_float(score))
 
     def add_deviation(self, dev):
         self.scores.append(pt_float(dev))
@@ -589,11 +599,17 @@ class ptSuite:
         if not self.append:
             self._seq_num += 1
             test.seq_num = self._seq_num
-
-        self.tests.append(test)
-
-        key = "%s-%s-%s" % (test.tag, str(test.group), str(test.category))
-        self._key2test[key] = test
+        added_test = self.getTest(tag=test.tag, group=test.group, category=test.category)
+        if added_test is None:
+            self.tests.append(test)
+            key = "%s-%s-%s" % (test.tag, str(test.group), str(test.category))
+            self._key2test[key] = test
+        elif added_test == test:
+            # TODO add_deviations
+            added_test.add_score(test.scores)
+        else:
+            raise ptRuntimeException("ptTest with received tag, group, category already exists, but other "
+                                     "attributes differs")
 
     def addArtifact(self, uuid1=None):
         return ptArtifact(pt_server=self.pt_server, uuid1=uuid1)
@@ -771,6 +787,10 @@ def _coverage():
         suite.addTest(ptTest("Home page throughput", group="Throughput tests", metrics="pages/sec",
                              category="%d parallel clients" % (2 ** p),
                              scores=[10 + sqrt(p) + random.randint(0, 20) / 5]))
+
+    suite.addTest(ptTest("Login time", group="Latency tests", metrics="sec", less_better=True,
+                         category="2 parallel users",
+                         scores=[0.3 + sqrt(2) + random.randint(0, 20) / 40.0]))
 
     a = suite.addArtifact(uuid1="11111111-3333-11e8-85cb-8c85907924aa")
     a.compressed = True

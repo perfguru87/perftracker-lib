@@ -228,7 +228,7 @@ class ptShellFromFile(citizenshell.abstractshell.AbstractShell):
         citizenshell.abstractshell.AbstractShell.__init__(self)
         self.from_file = from_file
 
-    def execute(self, command, **kwargs):
+    def execute(self, cmdline, raise_exc=True, **kwargs):
         class FakeResult:
             def __init__(self, output):
                 self.output = output.split('\n')
@@ -241,7 +241,7 @@ class ptShellFromFile(citizenshell.abstractshell.AbstractShell):
                     yield line
 
         with open(self.from_file) as output:
-            return 0, output.read(), ""
+            return 0, output.readlines(), ""
 
 
 ##############################################################################
