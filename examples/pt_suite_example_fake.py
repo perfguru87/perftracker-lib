@@ -65,7 +65,7 @@ def main(suite):
 
     for p in range(1, 100 + random.randint(0, 100)):
         suite.addTest(ptTest("Home page response time", group=g, metrics="sec", less_better=True,
-                             category="Database size %d GB" % p,
+                             category="DB size %d GB" % p,
                              scores=[0.3 + (sqrt(p) + random.randint(0, 20)) / 40],
                              errors=['4xx error'] if random.randint(0, 30) == 0 else [],
                              warnings=['HTTP 500'] if random.randint(0, 20) == 0 else [],
@@ -73,7 +73,7 @@ def main(suite):
 
     for p in range(1, 100 + random.randint(0, 100)):
         suite.addTest(ptTest("Dashboard page response time", group=g, metrics="sec", less_better=True,
-                             category="Database size %d GB" % p,
+                             category="DB size %d GB" % p,
                              scores=[0.8 + (sqrt(p) + random.randint(0, 20)) / 40],
                              errors=['4xx error'] if random.randint(0, 30) == 0 else [],
                              warnings=['HTTP 500'] if random.randint(0, 20) == 0 else [],
