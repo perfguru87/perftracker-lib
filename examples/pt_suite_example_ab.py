@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 from __future__ import print_function, absolute_import
- 
+
 # -*- coding: utf-8 -*-
 __author__ = "perfguru87@gmail.com"
 __copyright__ = "Copyright 2018, The PerfTracker project"
@@ -26,6 +26,7 @@ reREQ = re.compile("Complete requests:\s+(\d+).*")
 EXIT_AB_ERROR = -1
 EXIT_URL_VALIDATION = -2
 EXIT_NO_URLS = -3
+
 
 class ABLauncher:
     def __init__(self, suite, urls, concurrencies=None, iterations=3, requests=0, time=5):
@@ -84,10 +85,9 @@ class ABLauncher:
 
     def init(self):
         self._validate_urls()
-
         self.suite.addNode(ptHost("client", ip='127.0.0.1', scan_info=True))
         self.suite.upload()
-	self.print_ab_header()
+        self.print_ab_header()
 
     def launch(self):
         for concurrency in self.concurrencies:
@@ -138,7 +138,7 @@ def main():
     if not urls:
         op.print_help()
         print("Example:\n    %s http://www.google.com/" % basename)
-        sys.exit(EXIT_NOR_URLS)
+        sys.exit(EXIT_NO_URLS)
 
     loglevel = logging.DEBUG if opts.verbose else logging.INFO
     logging.basicConfig(level=loglevel, format="%(asctime)s - %(module)s - %(levelname)s - %(message)s")
@@ -149,6 +149,7 @@ def main():
                     requests=opts.requests, iterations=opts.iterations, time=opts.time)
     ab.init()
     ab.launch()
+
 
 if __name__ == "__main__":
     main()
