@@ -201,7 +201,8 @@ class ptShell:
         self._debug("%s ..." % cmdline)
         ret = self.shell(cmdline)
         if ret.exit_code():
-            msg = "ERROR: %s: %s, exit status: %d\n%s" % (str(self), cmdline, ret.exit_code(), ret.stderr())
+            msg = "ERROR: %s: %s, exit status: %d\n%s %s" % (str(self), cmdline, ret.exit_code(), ret.stderr(),
+                                                             ret.stdout())
             if raise_exc:
                 raise ShellError(msg)
             self._debug(msg)
