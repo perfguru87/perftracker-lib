@@ -58,6 +58,13 @@ def pt_float(value):
     return float(fmt % (val)) * (1 if value > 0 else -1)
 
 
+def get_timestamp_from_datetime(time):
+    assert isinstance(time, datetime.datetime)
+    time = time.replace(tzinfo=tzlocal())
+    epoch = datetime.datetime(1970, 1, 1, tzinfo=tzlocal())
+    return int((time - epoch - time.utcoffset()).total_seconds() * 1000)
+
+
 class ptRuntimeException(Exception):
     pass
 
@@ -593,6 +600,20 @@ class ptSuite:
         url     - link url:  'http://grafana.localdomain/host1'
         """
         self.links[str(name)] = str(url)
+
+    def addGrafanaLink(self, grafana_url):
+        """
+        if recieved grafana_address and tag dashboards will be added without filtering node instances
+        :param grafana_url: grafana url in format http://{domain_or_ip}/d/{dashboard_id}/{dashboard_name}?{params}
+        """
+        if "?" in grafana_url:
+            grafana_url += "&"
+        else:
+            grafana_url += "?"
+        self.addLink(name="Grafana metrics {}".format(grafana_url.split('/')[5].split('?')[0]),
+                     url=grafana_url + "from={}&to={}".format(str(get_timestamp_from_datetime(self.begin)),
+                                                              str(get_timestamp_from_datetime(
+                                                                  datetime.datetime.now()))))
 
     def addTest(self, test):
         assert isinstance(test, ptTest)
