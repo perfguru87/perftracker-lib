@@ -201,7 +201,8 @@ class ptShell:
         self._debug("%s ..." % cmdline)
         ret = self.shell(cmdline)
         if ret.exit_code():
-            msg = "ERROR: %s: %s, exit status: %d\n%s" % (str(self), cmdline, ret.exit_code(), ret.stderr())
+            msg = "ERROR: %s: %s, exit status: %d\n%s %s" % (str(self), cmdline, ret.exit_code(), ret.stderr(),
+                                                             ret.stdout())
             if raise_exc:
                 raise ShellError(msg)
             self._debug(msg)
@@ -229,19 +230,8 @@ class ptShellFromFile(citizenshell.abstractshell.AbstractShell):
         self.from_file = from_file
 
     def execute(self, cmdline, raise_exc=True, **kwargs):
-        class FakeResult:
-            def __init__(self, output):
-                self.output = output.split('\n')
-
-            def exit_code(self):
-                return 0
-
-            def __iter__(self):
-                for line in self.output:
-                    yield line
-
         with open(self.from_file) as output:
-            return 0, output.readlines(), ""
+            return 0, "".join(output.readlines()), ""
 
 
 ##############################################################################
