@@ -462,7 +462,7 @@ class ptEnvNode:
             if not self.hostname:
                 self.hostname = self._shell.os_info.hostname
             if not self.ram_mb:
-                self.ram_mb = int(round(int(self._shell.hw_info.ram_kb) / 1024, 0))
+                self.ram_mb = int(round(self._shell.hw_info.ram_kb / 1024, 0))
             if not self.cpus:
                 self.cpus = self._shell.hw_info.cpu_count
             if not self.cpu_info:
