@@ -98,7 +98,7 @@ class Hw:
             self._cpu_freq_ghz = round(f("cat /proc/cpuinfo | grep 'cpu MHz' "
                                          "| head -n 1 | cut -d':' -f 2", float) / 1000, 1)
             self._cpu_count = f("cat /proc/cpuinfo | grep processor | wc -l", int)
-            self._ram_kb = f("cat /proc/meminfo | grep MemTotal | awk '{ print $2 }'")
+            self._ram_kb = f("cat /proc/meminfo | grep MemTotal | awk '{ print $2 }'", int)
 
         elif self.os_info.family == "Darwin":
             _, out, _ = self._shell.execute("system_profiler SPHardwareDataType")
