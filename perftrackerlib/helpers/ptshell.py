@@ -76,10 +76,14 @@ class Hw:
         self._serial = ''
         self._vendor = ''
         self._model = ''
+        self._ram_kb = 0
+
         self._cpu_model = ''
         self._cpu_freq_ghz = 0
         self._cpu_count = 0
-        self._ram_kb = 0
+        self._cpu_sockets = 1
+        self._cpu_cores = 1
+        self._cpu_threads = 1
 
         self._inited = False
 
@@ -94,11 +98,17 @@ class Hw:
             self._serial = f("cat /sys/class/dmi/id/product_serial")
             self._vendor = f("cat /sys/class/dmi/id/sys_vendor")
             self._model = f("cat /sys/class/dmi/id/product_name")
+            self._ram_kb = f("cat /proc/meminfo | grep MemTotal | awk '{ print $2 }'", int)
+
             self._cpu_model = f("cat /proc/cpuinfo | grep 'model name' | head -n 1 | cut -d':' -f 2")
             self._cpu_freq_ghz = round(f("cat /proc/cpuinfo | grep 'cpu MHz' "
                                          "| head -n 1 | cut -d':' -f 2", float) / 1000, 1)
             self._cpu_count = f("cat /proc/cpuinfo | grep processor | wc -l", int)
-            self._ram_kb = f("cat /proc/meminfo | grep MemTotal | awk '{ print $2 }'", int)
+            self._cpu_sockets = min(1, f("cat /proc/cpuinfo | grep 'physical id' | sort | uniq | wc -l"))
+            self._cpu_cores = min(1, f("cat /proc/cpuinfo | grep 'core id' | sort | uniq | wc -l"))
+
+            cores = self._cpu_sockets * self._cpu_cores
+            self._cpu_threads = self._cpu_count / cores 
 
         elif self.os_info.family == "Darwin":
             _, out, _ = self._shell.execute("system_profiler SPHardwareDataType")
@@ -113,9 +123,11 @@ class Hw:
                 elif "Processor Name" in line:
                     self._cpu_model = line.split(":")[1].strip()
                 elif "Number of Processors" in line:
-                    self._cpu_count *= int(line.split(":")[1].strip())
+                    self._cpu_sockets = int(line.split(":")[1].strip())
+                    self._cpu_count *= self._cpu_sockets
                 elif "Total Number of Cores" in line:
-                    self._cpu_count *= int(line.split(":")[1].strip())
+                    self._cpu_cores = int(line.split(":")[1].strip())
+                    self._cpu_count *= self._cpu_cores
                 elif "Processor Speed" in line:
                     self._cpu_freq_ghz = float(line.split(":")[1].split()[0].strip().replace(',', '.'))
                 elif "Memory" in line:
@@ -160,6 +172,11 @@ class Hw:
     @cached_property
     def cpu_count(self):
         return self._init()._cpu_count
+
+    @cached_property
+    def cpu_topology(self):
+        return "%dS x %dC x %dT" % \
+               (self._init()._cpu_sockets, self._init()._cpu_cores, self._init()._cpu_threads)
 
     @cached_property
     def ram_kb(self):
@@ -255,6 +272,7 @@ def _coverage():
     print("cpu_model:    ", sh.hw_info.cpu_model)
     print("cpu_freq_ghz: ", sh.hw_info.cpu_freq_ghz)
     print("cpu_count:    ", sh.hw_info.cpu_count)
+    print("cpu_topology: ", sh.hw_info.cpu_topology)
     print("ram_kb:       ", sh.hw_info.ram_kb)
 
 
