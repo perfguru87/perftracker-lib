@@ -108,12 +108,10 @@ class Hw:
             self._cpu_cores = min(1, f("cat /proc/cpuinfo | grep 'core id' | sort | uniq | wc -l"))
 
             cores = self._cpu_sockets * self._cpu_cores
-            self._cpu_threads = self._cpu_count / cores 
+            self._cpu_threads = self._cpu_count / cores
 
         elif self.os_info.family == "Darwin":
             _, out, _ = self._shell.execute("system_profiler SPHardwareDataType")
-
-            self._cpu_count = 1
 
             self._vendor = "Apple Inc."
 
@@ -124,10 +122,8 @@ class Hw:
                     self._cpu_model = line.split(":")[1].strip()
                 elif "Number of Processors" in line:
                     self._cpu_sockets = int(line.split(":")[1].strip())
-                    self._cpu_count *= self._cpu_sockets
                 elif "Total Number of Cores" in line:
                     self._cpu_cores = int(line.split(":")[1].strip())
-                    self._cpu_count *= self._cpu_cores
                 elif "Processor Speed" in line:
                     self._cpu_freq_ghz = float(line.split(":")[1].split()[0].strip().replace(',', '.'))
                 elif "Memory" in line:
@@ -136,6 +132,11 @@ class Hw:
                     self._serial = line.split(":")[1].strip()
                 elif "Hardware UUID" in line:
                     self._uuid = line.split(":")[1].strip()
+
+            self._cpu_count = self._shell.execute_fetch_one("sysctl -n hw.ncpu", type=int)
+
+            cores = self._cpu_sockets * self._cpu_cores
+            self._cpu_threads = self._cpu_count / cores
 
         else:
             logging.warning("the %s.%s function is not implemented for OS: %s" %
