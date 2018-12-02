@@ -209,7 +209,7 @@ class ptShell:
         if isinstance(self.shell, citizenshell.LocalShell):
             return "localhost"
         if isinstance(self.shell, citizenshell.SecureShell):
-            return "" # self.os_info.hostname
+            return ""  # self.os_info.hostname
         return str(self.shell)
 
     def _debug(self, msg):
