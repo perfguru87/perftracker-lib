@@ -432,7 +432,7 @@ class ptTest:
 
 class ptEnvNode:
     def __init__(self, name, version=None, node_type=None, ip=None, hostname=None, params=None,
-                 cpus=0, cpu_info=None, ram_info=None,
+                 cpus=0, cpus_topology=None, cpu_info=None, ram_info=None,
                  ram_mb=0, ram_gb=0, disk_gb=0, links=None, scan_info=False,
                  ssh_user=None, ssh_password=None):
         self.name = name
@@ -446,6 +446,7 @@ class ptEnvNode:
 
         self.params = params
         self.cpus = cpus
+        self.cpus_topology = cpus_topology
         self.cpu_info = cpu_info
         self.ram_info = ram_info
 
@@ -465,6 +466,8 @@ class ptEnvNode:
                 self.ram_mb = int(round(self._shell.hw_info.ram_kb / 1024, 0))
             if not self.cpus:
                 self.cpus = self._shell.hw_info.cpu_count
+            if not self.cpus_topology:
+                self.cpus_topology = self._shell.hw_info.cpus_topology
             if not self.cpu_info:
                 self.cpu_info = "%s @ %.1fGHz" % (self._shell.hw_info.cpu_model, self._shell.hw_info.cpu_freq_ghz)
             if not self.version:
