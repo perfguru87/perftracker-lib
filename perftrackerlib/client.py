@@ -151,7 +151,7 @@ class ptServer:
                 j = json.loads(text)
                 response.json = j
             except ValueError as e:
-                raise ptRuntimeException("%s\nresponse:%s" % (str(e), str(text)))
+                raise ptRuntimeException("%s\nresponse:%s" % (str(e), str(text.encode('utf-8'))))
 
         if response.status_code == httplib.OK:
             if logging.getLogger().getEffectiveLevel() >= logging.DEBUG:
