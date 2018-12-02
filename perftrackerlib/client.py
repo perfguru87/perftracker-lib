@@ -707,6 +707,7 @@ class ptSuite:
             else:
                 with open(self._save_to_file, 'w') as f:
                     f.write(json_prettified)
+                logging.info("saving json data to %s" % self._save_to_file)
             return True
 
         json_data = self.toJson()
