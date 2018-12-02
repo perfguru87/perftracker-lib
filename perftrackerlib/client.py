@@ -179,8 +179,8 @@ class ptServer:
 
 
 class ptArtifact:
-    def __init__(self, pt_server, uuid1=None, filename='', description='', ttl_days=180,
-                 mime=None, inline=False, compression=False, linked_uuids=None):
+    def __init__(self, pt_server=None, uuid1=None, filename='', description='', ttl_days=180,
+                 mime=None, inline=False, compression=False, linked_uuids=None, validate=True):
         assert isinstance(pt_server, ptServer)
         assert linked_uuids is None or type(linked_uuids) is list
 
@@ -201,6 +201,12 @@ class ptArtifact:
         self._url_list = "/0/artifact/"
         self._url = "/0/artifact/%s" % (self.uuid)
         self._url_download = "/0/artifact_content/%s" % (self.uuid)
+
+        if validate:
+            self.validate()
+
+    def validate(self):
+        assert self._pt_server is not None
 
     def delete(self):
         return self._pt_server.delete(self._url)
@@ -295,10 +301,10 @@ class ptArtifact:
 
 
 class ptTest:
-    def __init__(self, tag, uuid1=None, group=None, binary=None, cmdline=None, description=None,
+    def __init__(self, tag=None, uuid1=None, group=None, binary=None, cmdline=None, description=None,
                  loops=None, scores=None, deviations=None, category=None, metrics="loops/sec",
                  links=None, attribs=None, less_better=False, errors=None, warnings=None,
-                 begin=None, end=None, duration_sec=0, status='SUCCESS'):
+                 begin=None, end=None, duration_sec=0, status='SUCCESS', validate=True):
         """
         tag         - keyword used to match tests results in different suites: hdd sequential read
         group       - test group: memory, disk, cpu, ...)
@@ -349,7 +355,8 @@ class ptTest:
         self._auto_end = end
         self._auto_begin = begin
 
-        self.validate()
+        if validate:
+            self.validate()
 
     def __eq__(self, other):
         assert isinstance(other, ptTest)
@@ -431,10 +438,10 @@ class ptTest:
 
 
 class ptEnvNode:
-    def __init__(self, name, version=None, node_type=None, ip=None, hostname=None, params=None,
+    def __init__(self, name=None, version=None, node_type=None, ip=None, hostname=None, params=None,
                  cpus=0, cpus_topology=None, cpu_info=None, ram_info=None,
                  ram_mb=0, ram_gb=0, disk_gb=0, links=None, scan_info=False,
-                 ssh_user=None, ssh_password=None):
+                 ssh_user=None, ssh_password=None, validate=True):
         self.name = name
         self.version = version
         self.node_type = node_type
@@ -454,7 +461,8 @@ class ptEnvNode:
         self.disk_gb = disk_gb
 
         self.links = links if links else {}
-        self.validate()
+        if validate:
+            self.validate()
 
         self.children = []  # start with x to show children in the end of prettified json
 
@@ -483,6 +491,7 @@ class ptEnvNode:
         return None
 
     def validate(self):
+        assert self.name is not None
         assert self.cpus is None or type(self.cpus) is int
         assert self.ram_mb is None or type(self.ram_mb) is int
         assert self.disk_gb is None or type(self.disk_gb) is int
@@ -495,8 +504,8 @@ class ptEnvNode:
 
 
 class ptHost(ptEnvNode):
-    def __init__(self, name, model=None, hw_uuid=None, serial_num=None, numa_nodes=None, **kwargs):
-        ptEnvNode.__init__(self, name, **kwargs)
+    def __init__(self, name=None, model=None, hw_uuid=None, serial_num=None, numa_nodes=None, **kwargs):
+        ptEnvNode.__init__(self, name=name, **kwargs)
         self.node_type = "Host"
         self.model = model
         self.hw_uuid = hw_uuid
@@ -512,24 +521,24 @@ class ptHost(ptEnvNode):
 
 
 class ptVM(ptEnvNode):
-    def __init__(self, name, virt_type=None, **kwargs):
+    def __init__(self, name=None, virt_type=None, **kwargs):
         """
         virt_type - KVM VM, ESX VM, k8s pod, docker image
         """
-        ptEnvNode.__init__(self, name, **kwargs)
+        ptEnvNode.__init__(self, name=name, **kwargs)
         self.node_type = virt_type
 
 
 class ptComponent(ptEnvNode):
-    def __init__(self, name, version=None, links=None, **kwargs):
-        ptEnvNode.__init__(self, name, **kwargs)
+    def __init__(self, name=None, version=None, links=None, **kwargs):
+        ptEnvNode.__init__(self, name=name, **kwargs)
         self.name = name
         self.version = version
         self.node_type = 'service'
 
 
 class ptProduct:
-    def __init__(self, name, version=None):
+    def __init__(self, name="", version=None):
         self.name = name
         self.version = str(version)
 
@@ -655,12 +664,21 @@ class ptSuite:
                 elif type(member) is list:
                     if len(member):
                         for j in json_obj[el_name]:
-                            new_obj = member[0].__class__()
+                            if hasattr(member[0], 'validate'):
+                                new_obj = member[0].__class__(validate=False)
+                            else:
+                                try:
+                                    new_obj = member[0].__class__()
+                                except TypeError as e:
+                                    logging.error("EXCEPTION: class: %s, error: %s" % \
+                                                  (member[0].__class__.__name__, str(e)))
+                                    raise
                             _initFromJson(new_obj, j)
                             member.append(new_obj)
                     else:
                         obj.__dict__[el_name] = json_obj[el_name]
-                elif obj.__dict__[el_name].__class__.__name__.startswith('pt'):  # special hack to handle ptServer, ptTest, ptArtifact, ...
+                elif obj.__dict__[el_name].__class__.__name__.startswith('pt'):
+                    # special hack to handle ptServer, ptTest, ptArtifact, ...
                     new_obj = member.__class__()
                     _initFromJson(new_obj, json_obj[el_name])
                 elif type(member) is datetime.datetime:
@@ -856,6 +874,8 @@ def _coverage():
     a.link([suite.uuid])
 
     suite.upload()
+    j = suite.toJson()
+    suite.initFromJson(json.loads(j))
     print("Done, job: %s" % suite.uuid)
 
 
