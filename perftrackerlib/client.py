@@ -635,6 +635,38 @@ class ptSuite:
     def addArtifact(self, uuid1=None):
         return ptArtifact(pt_server=self.pt_server, uuid1=uuid1)
 
+    def initFromJson(self, json_obj):
+        logging.debug("initializing data from json: %s" % str(json_obj))
+
+        def _initFromJson(obj, json_obj):
+            for el_name in json_obj:
+                if str(el_name) not in obj.__dict__:
+                    logging.debug("skipping unrecognized element: %s = %s, while obj is: %s" %
+                                  (str(el_name), json_obj[el_name], obj.__dict__))
+                    continue
+
+                member = obj.__dict__[el_name]
+
+                if member is None:
+                    obj.__dict__[el_name] = json_obj[el_name]
+                elif type(member) is list:
+                    if len(member):
+                        for j in json_obj[el_name]:
+                            new_obj = member[0].__class__()
+                            _initFromJson(new_obj, j)
+                            member.append(new_obj)
+                    else:
+                        obj.__dict__[el_name] = json_obj[el_name]
+                elif obj.__dict__[el_name].__class__.__name__.startswith('pt'):  # special hack to handle ptServer, ptTest, ptArtifact, ...
+                    new_obj = member.__class__()
+                    _initFromJson(new_obj, json_obj[el_name])
+                elif type(member) is datetime.datetime:
+                    obj.__dict__[el_name] = json_obj[el_name]
+                else:
+                    obj.__dict__[el_name] = type(member)(json_obj[el_name])
+
+        _initFromJson(self, json_obj)
+
     def getTest(self, tag, group=None, category=None):
         key = "%s-%s-%s" % (tag, str(group), str(category))
         return self._key2test.get(key, None)
