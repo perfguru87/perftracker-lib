@@ -574,7 +574,7 @@ class ptSuite:
         self._key2test = {}
 
         self.pt_server = ptServer(pt_server_url)
-        self.save_to_file = save_to_file
+        self._save_to_file = save_to_file
         self._pt_options_added = False
 
         self._stdout_filename = None
@@ -700,12 +700,12 @@ class ptSuite:
 
         json_prettified = self.toJson(pretty=True)
 
-        if self.save_to_file:
-            if self.save_to_file == "-":
+        if self._save_to_file:
+            if self._save_to_file == "-":
                 print("Job json:")
                 print(json_prettified)
             else:
-                with open(self.save_to_file, 'w') as f:
+                with open(self._save_to_file, 'w') as f:
                     f.write(json_prettified)
             return True
 
@@ -758,7 +758,7 @@ class ptSuite:
             return options.__dict__.get(key, None) is not None
 
         if _exists(options, 'pt_to_file'):
-            self.save_to_file = options.pt_to_file
+            self._save_to_file = options.pt_to_file
         if _exists(options, 'pt_url'):
             self.pt_server.setUrl(options.pt_url)
         if _exists(options, 'pt_replace'):
