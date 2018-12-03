@@ -670,7 +670,7 @@ class ptSuite:
                                 try:
                                     new_obj = member[0].__class__()
                                 except TypeError as e:
-                                    logging.error("EXCEPTION: class: %s, error: %s" % \
+                                    logging.error("EXCEPTION: class: %s, error: %s" %
                                                   (member[0].__class__.__name__, str(e)))
                                     raise
                             _initFromJson(new_obj, j)
