@@ -475,7 +475,7 @@ class ptEnvNode:
             if not self.cpus:
                 self.cpus = self._shell.hw_info.cpu_count
             if not self.cpus_topology:
-                self.cpus_topology = self._shell.hw_info.cpus_topology
+                self.cpus_topology = self._shell.hw_info.cpu_topology
             if not self.cpu_info:
                 self.cpu_info = "%s @ %.1fGHz" % (self._shell.hw_info.cpu_model, self._shell.hw_info.cpu_freq_ghz)
             if not self.version:
