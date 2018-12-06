@@ -104,8 +104,8 @@ class Hw:
             self._cpu_freq_ghz = round(f("cat /proc/cpuinfo | grep 'cpu MHz' "
                                          "| head -n 1 | cut -d':' -f 2", float) / 1000, 1)
             self._cpu_count = f("cat /proc/cpuinfo | grep processor | wc -l", int)
-            self._cpu_sockets = min(1, f("cat /proc/cpuinfo | grep 'physical id' | sort | uniq | wc -l"))
-            self._cpu_cores = min(1, f("cat /proc/cpuinfo | grep 'core id' | sort | uniq | wc -l"))
+            self._cpu_sockets = min(1, f("cat /proc/cpuinfo | grep 'physical id' | sort | uniq | wc -l", int))
+            self._cpu_cores = min(1, f("cat /proc/cpuinfo | grep 'core id' | sort | uniq | wc -l", int))
 
             cores = self._cpu_sockets * self._cpu_cores
             self._cpu_threads = self._cpu_count / cores
