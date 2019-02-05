@@ -113,7 +113,8 @@ class BrowserBase:
     engine = 'basebrwsr'
 
     def __init__(self, headless=True, resolution=(1440, 900), cleanup=True, telemetry_fname=None,
-                 log_path='auto', nav_timeout=DEFAULT_NAV_TIMEOUT, ajax_threshold=DEFAULT_AJAX_THRESHOLD):
+                 log_path='auto', nav_timeout=DEFAULT_NAV_TIMEOUT, ajax_threshold=DEFAULT_AJAX_THRESHOLD,
+                 remote_connstring=None):
         self.history = []
         self.page_stats = {}
 
@@ -125,6 +126,7 @@ class BrowserBase:
         self.pid = None
         self.nav_timeout = nav_timeout
         self.ajax_threshold = ajax_threshold
+        self.remote_connstring = remote_connstring
 
         if log_path == 'auto':
             self.log_path = tempfile.NamedTemporaryFile(delete=cleanup).name

@@ -131,7 +131,8 @@ class CPBrowserRunner:
                                           telemetry_fname=self.opts.telemetry,
                                           log_path=self.browser_logfile,
                                           nav_timeout=self.opts.nav_timeout,
-                                          ajax_threshold=self.opts.ajax_threshold)
+                                          ajax_threshold=self.opts.ajax_threshold,
+                                          remote_connstring=self.opts.remote_connstring)
 
         if self.browser_id:
             sys.stdout = open(self.stdout_fname, 'w')
@@ -501,6 +502,8 @@ class CPCrawler:
         og.add_option("", "--log-file", type="string", help="log into the file (default %s)" % self.logfile)
         og.add_option("", "--log2file", action="store_true", help="enable --verbose mode and log to the --log-file")
         og.add_option("-V", "--view", action="store_true", help="Show browser screen")
+        og.add_option("--remote_connstring", default=None, type="string",
+                      help="Connect to remote selenium. ex. http://{SELENIUM_IP}:{SELENIUM_PORT}/wd/hub")
         og.add_option("-g", "--html-report", type="string",
                       help="generate HTML report with screenshots and other information")
         og.add_option("-t", "--telemetry", type="string",
