@@ -502,7 +502,7 @@ class CPCrawler:
         og.add_option("", "--log-file", type="string", help="log into the file (default %s)" % self.logfile)
         og.add_option("", "--log2file", action="store_true", help="enable --verbose mode and log to the --log-file")
         og.add_option("-V", "--view", action="store_true", help="Show browser screen")
-        og.add_option("--remote_connstring", default=None, type="string",
+        og.add_option("--remote-connstring", default=None, type="string",
                       help="Connect to remote selenium. ex. http://{SELENIUM_IP}:{SELENIUM_PORT}/wd/hub")
         og.add_option("-g", "--html-report", type="string",
                       help="generate HTML report with screenshots and other information")
