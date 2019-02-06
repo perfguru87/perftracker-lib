@@ -11,7 +11,6 @@ __license__ = "MIT"
 The Chrome browser helper
 """
 
-
 import logging
 import re
 import os
@@ -28,12 +27,11 @@ from .browser_webdriver import BrowserWebdriver, abort
 from .page import PageEvent, PageRequest
 
 try:
-        from selenium import webdriver
-        from selenium.common.exceptions import WebDriverException
-        import psutil
+    from selenium import webdriver
+    from selenium.common.exceptions import WebDriverException
+    import psutil
 except ImportError as e:
-        abort(e)
-
+    abort(e)
 
 reChromeEvents = re.compile("DEVTOOLS EVENT ([\w\.]+)([\n\W\w]*)")
 
@@ -185,6 +183,9 @@ class BrowserChrome(BrowserWebdriver):
         self._browser_parse_logs(page, self.driver.execute('getLog', {'type': 'performance'}))
 
     def _browser_get_rss_kb(self):
+        # w/a for docker
+        if self.remote_connstring:
+            return 0
         rss = 0
         proc = psutil.Process(self.pid)
         if not proc:
@@ -213,13 +214,21 @@ class BrowserChrome(BrowserWebdriver):
         # w/a for hanging Chrome, see https://github.com/SeleniumHQ/docker-selenium/issues/87
         os.environ["DBUS_SESSION_BUS_ADDRESS"] = "/dev/null"
 
-        try:
-            self.driver = webdriver.Chrome(desired_capabilities=descaps,
-                                           service_args=['--verbose', '--log-path=%s' % self.log_path])
-        except WebDriverException as e:
-            abort(e)
+        if self.remote_connstring:
+            try:
+                self.driver = webdriver.Remote(self.remote_connstring,
+                                               desired_capabilities=descaps)
+                return 1
+            except WebDriverException as e:
+                abort(e)
+        else:
+            try:
+                self.driver = webdriver.Chrome(desired_capabilities=descaps,
+                                               service_args=['--verbose', '--log-path=%s' % self.log_path])
+                return self.driver.service.process.pid
+            except WebDriverException as e:
+                abort(e)
 
-        return self.driver.service.process.pid
 
     def navigation_reset(self):
         self.navigate_to("chrome://version/")
