@@ -229,7 +229,6 @@ class BrowserChrome(BrowserWebdriver):
             except WebDriverException as e:
                 abort(e)
 
-
     def navigation_reset(self):
         self.navigate_to("chrome://version/")
 
