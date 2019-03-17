@@ -685,7 +685,10 @@ class ptSuite:
                 elif type(member) is datetime.datetime:
                     obj.__dict__[el_name] = json_obj[el_name]
                 elif type(member) is dict:
-                    obj.__dict__[el_name] = ast.literal_eval(json_obj[el_name])
+                    try:
+                        obj.__dict__[el_name] = dict(json_obj[el_name])
+                    except ValueError as e:
+                        obj.__dict__[el_name] = ast.literal_eval(json_obj[el_name])
                 else:
                     obj.__dict__[el_name] = type(member)(json_obj[el_name])
 
