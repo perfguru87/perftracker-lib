@@ -28,7 +28,7 @@ libs = [("perftrackerlib/client.py", 73),
         ("perftrackerlib/browser/page.py", 15),
         ("perftrackerlib/browser/cp_engine.py", 30),
         ("perftrackerlib/browser/wpa_cp_engine.py", 40),
-        ("perftrackerlib/browser/browser_chrome.py", 80),
+        ("perftrackerlib/browser/browser_chrome.py", 77),
         ("perftrackerlib/browser/browser_firefox.py", 35),
         ("perftrackerlib/browser/cp_crawler.py", 50),
         ]
