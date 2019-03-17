@@ -19,6 +19,7 @@ import subprocess
 import bz2
 import random
 import citizenshell
+import ast
 from math import sqrt
 from dateutil import parser
 
@@ -683,6 +684,8 @@ class ptSuite:
                     _initFromJson(new_obj, json_obj[el_name])
                 elif type(member) is datetime.datetime:
                     obj.__dict__[el_name] = json_obj[el_name]
+                elif type(member) is dict:
+                    obj.__dict__[el_name] = ast.literal_eval(json_obj[el_name])
                 else:
                     obj.__dict__[el_name] = type(member)(json_obj[el_name])
 
