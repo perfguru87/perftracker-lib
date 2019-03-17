@@ -27,6 +27,7 @@ if __name__ == "__main__":
     op.add_option("-v", "--verbose", action="store_true", help="enable verbose mode")
 
     suite = ptSuite(suite_ver="1.0.0", product_name="My product", product_ver="1.0-123", project_name="Default project")
+    suite.addOptions(op)
 
     opts, args = op.parse_args()
 
