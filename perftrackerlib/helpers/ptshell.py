@@ -5,10 +5,14 @@ __author__ = "perfguru87@gmail.com"
 __copyright__ = "Copyright 2018, The PerfTracker project"
 __license__ = "MIT"
 
-import citizenshell
-import logging
-from perftrackerlib.helpers.decorators import cached_property
 from functools import wraps
+import logging
+
+from paramiko import SSHClient, AutoAddPolicy
+from scp import SCPClient
+import citizenshell
+
+from perftrackerlib.helpers.decorators import cached_property
 
 
 class ShellError(Exception):
@@ -251,6 +255,19 @@ class ptShellFromFile(citizenshell.abstractshell.AbstractShell):
         with open(self.from_file) as output:
             return 0, "".join(output.readlines()), ""
 
+
+class SecureShellEx(citizenshell.SecureShell):
+    def __init__(self, hostname, username, password=None, port=22, pkey=None, **kwargs):
+        self._pkey = pkey
+        super(SecureShellEx, self).__init__(hostname, username, password, port, **kwargs)
+
+    def do_connect(self):
+        self._client = SSHClient()
+        self._client.load_system_host_keys()
+        self._client.set_missing_host_key_policy(AutoAddPolicy())
+        self._client.connect(hostname=self._hostname, port=self._port, username=self._username,
+                             password=self._password, key_filename=self._pkey)
+        self._scp_client = SCPClient(self._client.get_transport())
 
 ##############################################################################
 # Autotests
