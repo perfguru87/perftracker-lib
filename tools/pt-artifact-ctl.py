@@ -138,7 +138,7 @@ def main():
     op.add_option("-p", "--pt-server-url", default="http://127.0.0.1:9000", help="perftracker url, default %default")
 
     og = OptionGroup(op, "'upload' and 'update' options")
-    og.add_option("-d", "--description", help="artifact description (i")
+    og.add_option("-d", "--description", help="artifact description")
     og.add_option("-m", "--mime", default=None, help="artifact mime type, default is guessed or "
                                                      "'application/octet-stream'")
     og.add_option("-f", "--filename", help="override artifact file name by given name")
