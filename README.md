@@ -92,7 +92,7 @@ Options:
   -p PT_SERVER_URL, --pt-server-url=PT_SERVER_URL
                               perftracker url, default http://127.0.0.1:9000
   -d DESCRIPTION, --description=DESCRIPTION
-                              artifact description (i
+                              artifact description
   -m MIME, --mime=MIME        artifact mime type, default is guessed or
                               'application/octet-stream'
   -f FILENAME, --filename=FILENAME
