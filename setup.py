@@ -27,6 +27,7 @@ setup(
 
     description='Python package with perftracker client, tools, tests and libraries',
     long_description=long_description,
+    long_description_content_type='text/markdown',
 
     # Author details
     author='perfguru87',
