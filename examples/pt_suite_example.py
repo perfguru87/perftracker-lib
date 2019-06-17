@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from optparse import OptionParser, OptionGroup
+from optparse import OptionParser
 import os
 import sys
 import logging
@@ -21,7 +21,6 @@ def main(suite):
     s1 = suite.addNode(ptHost("s1", ip="192.168.0.1", hostname="server1.localdomain", version="CentOS 7.4", cpus=32, ram_gb=128))
     s2 = suite.addNode(ptHost("s2", ip="192.168.0.2", hostname="server2.localdomain", version="CentOS 7.4", cpus=32, ram_gb=128))
     s3 = suite.addNode(ptHost("s3", ip="192.168.0.3", hostname="server3.localdomain", version="CentOS 7.4", cpus=32, ram_gb=128))
-    s4 = suite.addNode(ptHost("s4", ip="192.168.0.4", hostname="server4.localdomain", version="CentOS 7.4", cpus=16, ram_gb=64))
 
     vm1 = s1.addNode(ptVM("vm1", ip="192.168.100.1", version="CentOS 7.4", virt_type="KVM VM", cpus=4, ram_gb=32))
     vm2 = s1.addNode(ptVM("vm2", ip="192.168.100.2", version="CentOS 7.4", virt_type="KVM VM", cpus=4, ram_gb=32))

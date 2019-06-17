@@ -11,17 +11,18 @@ from optparse import OptionParser, OptionGroup
 import os
 import sys
 import logging
+import random
 import re
 
 bindir, basename = os.path.split(sys.argv[0])
 sys.path.insert(0, os.path.join(bindir, ".."))
 
 from perftrackerlib.client import ptSuite, ptHost, ptVM, ptComponent, ptProduct, ptTest
-from perftrackerlib import __version__
 
-reRPS = re.compile("Requests per second:\s+(\d+\.\d+).*")
-reERR = re.compile("Failed requests:\s+(\d+).*")
-reREQ = re.compile("Complete requests:\s+(\d+).*")
+
+reRPS = re.compile(r"Requests per second:\s+(\d+\.\d+).*")
+reERR = re.compile(r"Failed requests:\s+(\d+).*")
+reREQ = re.compile(r"Complete requests:\s+(\d+).*")
 
 EXIT_AB_ERROR = -1
 EXIT_URL_VALIDATION = -2
@@ -82,19 +83,23 @@ class ABLauncher:
     def init(self):
         self._validate_urls()
 
-        self.suite.addNode(ptHost("client", ip='127.0.0.1', scan_info=True))
+        self.suite.addNode(ptHost("client", ip="127.0.0.1", scan_info=False))
         self.suite.upload()
-	self.print_ab_header()
+        self.print_ab_header()
 
     def launch(self):
         for concurrency in self.concurrencies:
             requests = max(self.requests, concurrency)
             for url in self.urls:
-                cmdline = "ab -k -c %d -n %d %s" % (concurrency, requests, url)
+                cmdline = "echo -k -c %d -n %d %s" % (concurrency, requests, url)
 
-                test = ptTest(url, category="concurrency=%d" % concurrency,
+                test = ptTest(url, less_better=True, category="concurrency=%d" % concurrency,
                               group="Throughput", metrics="req/sec",
-                              errors=0, loops=0, cmdline=cmdline)
+                              errors=0, loops=0, cmdline=cmdline, scores=[random.randint(0, 10), random.randint(0, 10),
+                                                                          random.randint(0, 10)],
+                              deviations=[0.05, 0.12, 0.03],
+                              links={"repo": "https://github.com/perfguru87/perftracker-client"},
+                              attribs={"version": 0.1})
 
                 for i in range(0, self.iterations):
                     status, stdout, stderr = test.execute()
@@ -122,7 +127,7 @@ def main():
     if not urls:
         op.print_help()
         print("Example:\n    %s http://www.google.com/" % basename)
-        sys.exit(EXIT_NOR_URLS)
+        sys.exit(EXIT_NO_URLS)
 
     loglevel = logging.DEBUG if opts.verbose else logging.INFO
     logging.basicConfig(level=loglevel, format="%(asctime)s - %(module)s - %(levelname)s - %(message)s")
