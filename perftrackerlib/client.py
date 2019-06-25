@@ -619,6 +619,15 @@ class ptSuite:
                 logging.warning("%s, pass it as ptSuite(..., project_name=, ...)" % msg)
             return
 
+        if self.pt_node_name and self.pt_node_ip:
+            new_node = True
+            if len(self.env_nodes) > 0:
+                for _, node in enumerate(self.env_nodes):
+                    if node.name == self.pt_node_name:
+                        new_node = False
+            if new_node:
+                self.addNode(ptHost(self.pt_node_name, ip=self.pt_node_ip))
+
         if not self.project_id:
             self.validateProjectName()
 
@@ -675,6 +684,9 @@ class ptSuite:
                      help="Upload stdout & stderr to perftracker and attach to the job")
         g.add_option("--pt-log-ttl", type="int", default=180,
                      help="stdout & stderr logs time to live (days), default %default")
+        g.add_option("--pt-node-name", type="str", help="The name of the node under tests")
+        g.add_option("--pt-node-ip", type="str", help="The IP of the node under tests")
+
         option_parser.add_option_group(g)
 
     def handleOptions(self, options):
@@ -684,6 +696,12 @@ class ptSuite:
         def _exists(options, key):
             return options.__dict__.get(key, None) is not None
 
+        if _exists(options, 'pt_node_name'):
+            self.pt_node_name = options.pt_node_name
+        else:
+            self.pt_node_name = False
+        if _exists(options, 'pt_node_ip'):
+            self.pt_node_ip = options.pt_node_ip
         if _exists(options, 'pt_to_file'):
             self.save_to_file = options.pt_to_file
         if _exists(options, 'pt_url'):
