@@ -16,7 +16,8 @@ class Tee(object):
     def __init__(self, stream_name):
         assert stream_name == 'stdout' or stream_name == 'stderr'
 
-        _, self.filename = tempfile.mkstemp()
+        fd, self.filename = tempfile.mkstemp()
+        os.close(fd)  # required on Windows, otherwise __del__ fails
         logging.debug("copying sys.%s stream to %s" % (stream_name, self.filename))
 
         self._stream_name = stream_name

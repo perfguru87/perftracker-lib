@@ -824,8 +824,10 @@ class ptSuite:
     def fini(self):
         if self._stdout_artifact and os.path.getsize(self._stdout_filename):
             self._stdout_artifact.upload(self._stdout_filename)
+            self._stdout_artifact = None
         if self._stderr_artifact and os.path.getsize(self._stderr_filename):
             self._stderr_artifact.upload(self._stderr_filename)
+            self._stderr_artifact = None
 
     def __del__(self):
         self.fini()
