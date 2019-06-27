@@ -46,9 +46,9 @@ class ptParser:
             n_parsers = len(self.row_parsers)
 
             for n in range(0, n_parsers):
-                if self.row_parsers[n].search(line, match):
+                if self.row_parsers[n] and self.row_parsers[n].search(line, match):
                     if self.row_parsers[n].parse_once:
-                        del self.row_parsers[n]
+                        self.row_parsers[n] = None
                     break
 
 
