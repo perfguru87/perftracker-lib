@@ -41,7 +41,7 @@ class ptParser:
     def add_row_parser(self, regexp, obj_cb, parse_once=True):
         self.row_parsers.append(ptRowParser(regexp, obj_cb, parse_once))
 
-    def parse_text(self, lines, match=True):
+    def parse_text(self, lines, match=True, unique=True):
         for line in lines:
             n_parsers = len(self.row_parsers)
 
@@ -49,7 +49,8 @@ class ptParser:
                 if self.row_parsers[n] and self.row_parsers[n].search(line, match):
                     if self.row_parsers[n].parse_once:
                         self.row_parsers[n] = None
-                    break
+                    if unique:
+                        break
 
 
 ##############################################################################
