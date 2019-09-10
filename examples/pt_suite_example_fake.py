@@ -99,6 +99,13 @@ def main(suite):
 
     suite.upload()
 
+    g = "Upgrade"
+
+    suite.addTest(ptTest("Upgrade with small database", group=g, metrics="seconds", scores=[124, 125, 123]))
+    suite.addTest(ptTest("Upgrade with large database", group=g, metrics="seconds", scores=[344, 329, 351]))
+
+    suite.upload()
+
 
 if __name__ == "__main__":
 
