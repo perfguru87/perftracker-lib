@@ -79,9 +79,9 @@ def _coverage():
 
     p = ptParser()
 
-    p.add_row_parser("int: (?P<int>\d+), float: (?P<float>[\d\.]+), str: (?P<str>.*)", t1.parse, parse_once=False)
-    p.add_row_parser("int: (?P<int>\d+), float: (?P<float>[\d\.]+), xstr: (?P<str>.*)", t2.parse)
-    p.add_row_parser("int: (?P<int>\d+), str: (?P<str>.*)", [t1.parse, t3.parse])
+    p.add_row_parser(r"int: (?P<int>\d+), float: (?P<float>[\d\.]+), str: (?P<str>.*)", t1.parse, parse_once=False)
+    p.add_row_parser(r"int: (?P<int>\d+), float: (?P<float>[\d\.]+), xstr: (?P<str>.*)", t2.parse)
+    p.add_row_parser(r"int: (?P<int>\d+), str: (?P<str>.*)", [t1.parse, t3.parse])
 
     text = ["int: 12, float: 1.23, str: xxx",
             "int: 13, float: 1.24, xstr: xxx",
@@ -91,7 +91,7 @@ def _coverage():
             ]
 
     p.parse_text(text)
-    p.add_row_parser(" case #3 int: (\d+), float: ([\d\.]+), str: (\s*)", [(t1, 'int', int)], parse_once=False)
+    p.add_row_parser(r" case #3 int: (\d+), float: ([\d\.]+), str: (\s*)", [(t1, 'int', int)], parse_once=False)
 
     assert t1.int == 15
     assert t1.float == 1.25

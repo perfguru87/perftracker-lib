@@ -47,7 +47,7 @@ def gen_urls_from_index_file(path):
             txt = b.http_get(p)
 
             if txt.find("<title>Index of") >= 0:
-                r = re.compile(">([-\w]+\.htm[l]?)<")
+                r = re.compile(r">([-\w]+\.htm[l]?)<")
                 for line in txt.splitlines():
                     m = r.search(line)
                     if m:

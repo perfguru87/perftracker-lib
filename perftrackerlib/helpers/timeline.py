@@ -74,28 +74,28 @@ class ptParser:
 
 
 class ptParserDate(ptParser):
-    r = re.compile("^(?P<y>\d+)-(?P<mo>\d\d)-(?P<d>\d\d) (?P<h>\d\d):(?P<mi>\d\d):(?P<s>\d\d)$")
+    r = re.compile(r"^(?P<y>\d+)-(?P<mo>\d\d)-(?P<d>\d\d) (?P<h>\d\d):(?P<mi>\d\d):(?P<s>\d\d)$")
 
     def get_usec(self, match):
         return 0
 
 
 class ptParserDateMsec(ptParser):
-    r = re.compile("^(?P<y>\d+)-(?P<mo>\d\d)-(?P<d>\d\d) (?P<h>\d\d):(?P<mi>\d\d):(?P<s>\d\d).(?P<ms>\d\d\d)$")
+    r = re.compile(r"^(?P<y>\d+)-(?P<mo>\d\d)-(?P<d>\d\d) (?P<h>\d\d):(?P<mi>\d\d):(?P<s>\d\d).(?P<ms>\d\d\d)$")
 
     def get_usec(self, match):
         return int(match.group('ms')) * 1000
 
 
 class ptParserDateUsec(ptParser):
-    r = re.compile("^(?P<y>\d+)-(?P<mo>\d\d)-(?P<d>\d\d) (?P<h>\d\d):(?P<mi>\d\d):(?P<s>\d\d).(?P<us>\d\d\d\d\d\d)$")
+    r = re.compile(r"^(?P<y>\d+)-(?P<mo>\d\d)-(?P<d>\d\d) (?P<h>\d\d):(?P<mi>\d\d):(?P<s>\d\d).(?P<us>\d\d\d\d\d\d)$")
 
     def get_usec(self, match):
         return int(match.group('us'))
 
 
 class ptParserUsec(ptParser):
-    r = re.compile("^(?P<us>\d+)$")
+    r = re.compile(r"^(?P<us>\d+)$")
 
     def parse(self, s):
         m = self.r.search(s)

@@ -22,7 +22,7 @@ def clean_all():
     clean_one("rm -rf '%s/build/'" % root)
     clean_one("rm -rf '%s/dist/'" % root)
     clean_one("rm -rf '%s/perftracerlib.egg-info'" % root)
-    clean_one("find %s/ -name \*.pyc | xargs rm -f" % root)
+    clean_one(r"find %s/ -name \*.pyc | xargs rm -f" % root)
 
 
 if __name__ == '__main__':

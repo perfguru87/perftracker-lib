@@ -481,7 +481,7 @@ class CPCrawler:
         for u in users_ar:
             for _u in u.split(","):
                 if "{" in _u:
-                    m = re.search("(?P<pfx>.*?){(?P<from>\d+)-(?P<to>\d+)}(?P<sfx>.*)", _u)
+                    m = re.search(r"(?P<pfx>.*?){(?P<from>\d+)-(?P<to>\d+)}(?P<sfx>.*)", _u)
                     if not m:
                         raise CPCrawlerException("can't parse users range from '%s',"
                                                  "valid pattern is 'prefix{from-to}suffix'" % _u)

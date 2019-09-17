@@ -37,12 +37,12 @@ except ImportError as e:
     abort(e)
 
 
-# reFF = re.compile("(\d+-\d+-\d+ \d+:\d+\:\d+.\d+) UTC - [-\d]+\[([\d\w]+)\]:\s+(.*)\n")
-reFF = re.compile(" UTC - [-\d]+\[([\d\w]+)\]:\s+(.*)\n")
-reFFTxnInit = re.compile("^nsHttpTransaction::Init \[this=([\d\w]+).*$")
-reFFProcessData = re.compile("^nsHttpTransaction::ProcessData \[this=([\d\w]+) count=(\d+)\].*$")
-reFFReadFromcache = re.compile("^nsHttpChannel::ReadFromCache \[this=([\d\w]+)] Using cached copy of: (.*)$")
-reFFDestroyTxn = re.compile("^Destroying nsHttpTransaction @([\d\w]+).*$")
+# reFF = re.compile(r"(\d+-\d+-\d+ \d+:\d+\:\d+.\d+) UTC - [-\d]+\[([\d\w]+)\]:\s+(.*)\n")
+reFF = re.compile(r" UTC - [-\d]+\[([\d\w]+)\]:\s+(.*)\n")
+reFFTxnInit = re.compile(r"^nsHttpTransaction::Init \[this=([\d\w]+).*$")
+reFFProcessData = re.compile(r"^nsHttpTransaction::ProcessData \[this=([\d\w]+) count=(\d+)\].*$")
+reFFReadFromcache = re.compile(r"^nsHttpChannel::ReadFromCache \[this=([\d\w]+)] Using cached copy of: (.*)$")
+reFFDestroyTxn = re.compile(r"^Destroying nsHttpTransaction @([\d\w]+).*$")
 
 
 class BrowserFirefox(BrowserWebdriver):

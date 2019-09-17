@@ -33,7 +33,7 @@ try:
 except ImportError as e:
     abort(e)
 
-reChromeEvents = re.compile("DEVTOOLS EVENT ([\w\.]+)([\n\W\w]*)")
+reChromeEvents = re.compile(r"DEVTOOLS EVENT ([\w\.]+)([\n\W\w]*)")
 
 
 class BrowserChrome(BrowserWebdriver):
