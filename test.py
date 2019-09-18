@@ -44,7 +44,7 @@ tests = [("./tools/pt-artifact-ctl.py list"),
           "11111111-3333-11e8-85cb-8c85907924ab"),
          ("./tools/pt-suite-uploader.py -f ./examples/data/sample.txt --pt-project Test --pt-replace "
           "11111111-5555-11e8-85cb-8c85907924ab"),
-         ("./tools/pt-suite-uploader.py -f ./examples/data/sample.json -j --pt-project Test --pt-replace "
+         ("./tools/pt-suite-uploader.py -j ./examples/data/sample.json --pt-project Test --pt-replace "
           "11111111-5555-11e8-85cb-8c85907924ab"),
          ]
 
