@@ -209,7 +209,8 @@ class BrowserChrome(BrowserWebdriver):
 
         descaps = options.to_capabilities()
 
-        descaps['loggingPrefs'] = {'performance': 'DEBUG', 'browser': 'ALL', 'driver': 'ALL'}
+        # chromedriver capability was renamed to goog:loggingPrefs, as required by W3C standard
+        descaps['goog:loggingPrefs'] = {'performance': 'DEBUG', 'browser': 'ALL', 'driver': 'ALL'}
 
         # w/a for hanging Chrome, see https://github.com/SeleniumHQ/docker-selenium/issues/87
         os.environ["DBUS_SESSION_BUS_ADDRESS"] = "/dev/null"
