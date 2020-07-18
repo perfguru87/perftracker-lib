@@ -5,7 +5,7 @@
 Name:		python-perftrackerlib
 Version:	%{_ver}
 Release:	0%{?dist}
-Summary:	The perftracke libraries.
+Summary:	The perftracker client libraries.
 
 Group:		Development/Libraries
 License:	MIT
