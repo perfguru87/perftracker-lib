@@ -38,13 +38,6 @@ python3 ./examples/pt_suite_example_fake.py -v --pt-title="Website suite run" --
 
 Use code like `examples/pt_suite_example_populate.sh` to mass populate perftracker with fake data
 
-### Control Panel Crawler
-
-Run selenium-based test on a real WordPress Admin panel:
-```
-python3 ./examples/pt-wp-crawler.py -m -U user -P user https://demo.wpjobboard.net/wp-login.php
-```
-
 ### Upload pre-generated files with tests results:
 
 Sometimes you don't want to write a python suite and just grab some files and export results. In this case

@@ -1,5 +1,5 @@
 %define python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib()")
-%define _ver 0.0.46
+%define _ver 0.1.0
 
 Name:		perftracker-lib
 Version:	%{_ver}
@@ -11,12 +11,11 @@ Group:		Development/Libraries
 License:	MIT
 
 BuildRequires:	python
-Requires:	python git gcc python-devel python-setuptools python-dateutil
-Requires:       xorg-x11-server-Xvfb chromedriver google-chrome-stable libjpeg-devel zlib-devel
+Requires:	python git python-devel python-setuptools python-dateutil
 
 %description
 The perftracker-lib is a set of performance and reporting python libraries (the
-perftracker client, the UI crawler library and other helpers)
+perftracker client and some helpers)
 
 %install
 mkdir $RPM_BUILD_ROOT/bin
@@ -42,6 +41,8 @@ echo -e "\n====== The perftracker-lib uninstallation done =========\n"
 /bin/pt-artifact-ctl.py
 
 %changelog
+* Sat Jul 18 2020 <perfguru87@gmail.com>
+- removed all the UI crawler capabilities (moved to perftracker_cp_crawler)
 * Tue Oct 2 2018 <perfguru87@gmail.com>
 - added pt-artifact-ctl.py - a tool to manage artifacts
 * Thu Aug 16 2018 <perfguru87@gmail.com>
