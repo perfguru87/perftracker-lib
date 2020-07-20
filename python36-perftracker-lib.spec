@@ -1,5 +1,5 @@
 %define python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib()")
-%define _ver 0.1.4
+%define _ver 0.1.5
 
 Name:		python36-perftracker-lib
 Version:	%{_ver}
@@ -30,8 +30,8 @@ echo -e "\n====== The perftracker-lib installation done ======================\n
 
 %postun
 echo -e "\n====== Uninstalling the perftracker-lib v%{_ver} =======\n"
-echo "pip3.6 uninstall -y perftrackerlib=%{_ver}"
-pip3.6 uninstall -y perftrackerlib=%{_ver}
+echo "pip3.6 uninstall -y perftrackerlib"
+pip3.6 uninstall -y perftrackerlib
 echo -e "\n====== The perftracker-lib uninstallation done =========\n"
 
 %files
