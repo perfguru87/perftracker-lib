@@ -24,14 +24,14 @@ touch $RPM_BUILD_ROOT/bin/pt-artifact-ctl.py
 
 %post
 echo -e "\n====== Installing the perftracker-lib v%{_ver} from sources =======\n"
-echo "pip3.6 install --upgrade perftrackerlib={_ver}
-pip3.6 install --upgrade perftrackerlib={_ver}
+echo "pip3.6 install --upgrade perftrackerlib=%{_ver}"
+pip3.6 install --upgrade perftrackerlib=%{_ver}
 echo -e "\n====== The perftracker-lib installation done ======================\n"
 
 %postun
 echo -e "\n====== Uninstalling the perftracker-lib v%{_ver} =======\n"
-echo "pip3.6 uninstall -y perftrackerlib={_ver}"
-pip3.6 uninstall -y perftrackerlib={_ver}
+echo "pip3.6 uninstall -y perftrackerlib=%{_ver}"
+pip3.6 uninstall -y perftrackerlib=%{_ver}
 echo -e "\n====== The perftracker-lib uninstallation done =========\n"
 
 %files
