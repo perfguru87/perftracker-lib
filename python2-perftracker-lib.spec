@@ -1,5 +1,5 @@
 %define python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib()")
-%define _ver 0.1.0
+%define _ver 0.1.1
 
 Name:		python-perftrackerlib
 Version:	%{_ver}
