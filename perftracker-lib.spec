@@ -11,7 +11,7 @@ Group:		Development/Libraries
 License:	MIT
 
 BuildRequires:	python
-Requires:	python git python-devel python-setuptools python-dateutil
+Requires:	python git python-devel python-setuptools python-dateutil python-paramiko gcc openssl-devel
 
 %description
 The perftracker-lib is a set of performance and reporting python libraries (the
