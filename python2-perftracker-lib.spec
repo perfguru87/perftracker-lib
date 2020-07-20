@@ -24,7 +24,7 @@ touch $RPM_BUILD_ROOT/bin/pt-artifact-ctl.py
 
 %post
 echo -e "\n====== Installing the perftracker-lib v%{_ver} from sources =======\n"
-echo "pip2 install --upgrade perftrackerlib==%{_ver}
+echo "pip2 install --upgrade perftrackerlib==%{_ver}"
 pip2 install --upgrade perftrackerlib==%{_ver}
 echo -e "\n====== The perftracker-lib installation done ======================\n"
 
