@@ -706,6 +706,8 @@ class ptSuite:
     def validateProjectName(self):
         if not self.project_name:
             return
+        if self._save_to_file:
+            return
         self.project_id = self.pt_server.getProjectId(self.project_name)
         if self.project_id is None:
             sys.exit(-1)
