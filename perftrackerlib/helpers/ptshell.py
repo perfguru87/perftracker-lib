@@ -51,8 +51,13 @@ class Os:
 
         f = self._shell.execute
 
-        status, out, _ = f("python -c 'from __future__ import print_function; import platform; "
-                           "print(platform.platform())'")
+        try:
+            status, out, _ = f("python3 -c 'from __future__ import print_function; import platform; "
+                               "print(platform.platform())'")
+        except ShellError:
+            status, out, _ = f("python -c 'from __future__ import print_function; import platform; "
+                               "print(platform.platform())'")
+
         self._version = out.strip()
         if self._version.startswith("Linux"):
             self._family = "Linux"
