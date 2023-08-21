@@ -57,14 +57,14 @@ class Os:
         if self._version.startswith("Linux"):
             self._family = "Linux"
             self._hostname = f("hostname")
-        elif self._version.startswith("Darwin"):
+        elif self._version.startswith("Darwin") or self._version.startswith("macOS"):
             self._family = "Darwin"
             self._version = self._shell.execute_fetch_one("system_profiler SPSoftwareDataType | "
                                                           "grep \"System Version\" | cut -d\":\" -f 2")
         elif self._version.startswith("Windows"):
             self._family = "Windows"
         else:
-            raise ShellError("%s: can't recognize the OS family" % (str(self._shell)))
+            raise ShellError("%s: can't recognize the OS family: %s" % (str(self._shell), self._version))
 
         self._inited = True
         return self
@@ -127,7 +127,7 @@ class Hw:
                 elif "Number of Processors" in line:
                     self._cpu_sockets = int(line.split(":")[1].strip())
                 elif "Total Number of Cores" in line:
-                    self._cpu_cores = int(line.split(":")[1].strip())
+                    self._cpu_cores = int(line.split(":")[1].strip().split()[0].strip())
                 elif "Processor Speed" in line:
                     self._cpu_freq_ghz = float(line.split(":")[1].split()[0].strip().replace(',', '.'))
                 elif "Memory" in line:
